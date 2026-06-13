@@ -1,6 +1,6 @@
 ---
 name: book-mastery
-description: Guide the user through fully mastering a technical book — not just reading it — via a structured loop of reading, scaffolded practice in git branches, formative exams, spaced-repetition flashcards, and a book-spanning capstone project. Use this skill whenever the user wants to read, study, learn from, work through, or "master" a book, mentions starting a new technical book, asks to continue their book study sessions, or asks for exercises, exams, or flashcards related to a book they are reading.
+description: Guide the user through fully mastering a technical book — not just reading it — via a structured loop of reading, scaffolded practice in git branches, formative exams, spaced-repetition flashcards, and a book-spanning capstone project. Use this skill whenever the user wants to read, study, learn from, work through, or "master" a book, mentions starting a new technical book, asks to continue their book study sessions, asks for exercises, exams, or flashcards related to a book they are reading, or asks for an explanation of a concept or prerequisite from a book they are studying.
 ---
 
 # Book Mastery
@@ -21,6 +21,7 @@ This is a stateful, multi-session workflow. Treat the current directory as a stu
 - `sessions/` — built HTML pages, generated from YAML by `scripts/build_page.py`. Never hand-write these.
 - `../practice/` — a **sibling git repo** for exercises (see Git layout below): branch per exercise, `main` holds the book's canonical running code.
 - `../project/` — the capstone, also a **sibling repo** — standalone and publishable. Design rules: [references/project.md](references/project.md).
+- `explanations/` — discursive Markdown explanations the learner asks for, authored in the Diátaxis *explanation* mode (understanding, not instruction). On-demand and cross-linked to the glossary and maps; prose needs no build step. Mechanics: [references/explanations.md](references/explanations.md).
 - `GAPS.md` — registry of detected gaps in the learner's background, their evidence, and the inserted units closing them. Format and mechanics: [references/gaps.md](references/gaps.md).
 - `NOTES.md` — working notes: observed pace calibration, volunteered preferences, things to avoid. Observations and things the learner says unprompted — never interview material.
 
@@ -132,6 +133,10 @@ The learner is an adult professional; the author assumes a background the learne
 
 - A unit's exam may take several **rounds** (`exams/<unit>-r<n>.yaml`, `round:` in the YAML). A round passes only at 100% (mechanical + agent-graded); `state.py stats` reports per-round. A failed round gets Socratic follow-up now and a fresh-items round in a *later* session — never the same questions.
 - Attribute every miss: about the unit, or beneath it? Evidence beneath (misconceptions naming earlier/outside concepts, practice failing on unrelated mechanics, cross-unit lapses) registers a gap in `GAPS.md` and inserts remediation units into `BOOK.md` — splits (`3.1.2a`) for book material that didn't land, primers (`P-1`) for missing prerequisites. Inserted units run the normal full loop.
+
+## On-demand explanations
+
+The learner will ask to be *told about* things — why the author chose this design, what's really going on under a concept, how this chapter connects to the last, the difference between two things they keep confusing — about both the book's content and its prerequisites. These are requests for **explanation**, and explanation is its own mode: author it in the Diátaxis *explanation* framing (understanding-oriented, discursive, joins things together — the why, the context, the connections, the weighed alternatives), never as a disguised tutorial, reference dump, or — the rule that protects this whole skill — a replacement for the learner's own reading of the unit. Read [references/explanations.md](references/explanations.md) before authoring one: it covers the bounded edges, how explanation honors the knowledge-state model (forward references allowed but flagged; reading an explanation never marks anything `verified`), its role as a gap-remediation primer, persistence in `explanations/`, and the authoring checklist. Save it, cross-link it to the glossary and maps, and end by handing the learner back to active work.
 
 ## Adult-professional autonomy (skipping)
 

@@ -79,7 +79,10 @@ A gap spawns inserted units in `BOOK.md`, each running the normal full loop
   `P-<n> <concept>` before the next unit that needs it. The reading
   assignment is an external resource you select (docs, a chapter elsewhere,
   a tutorial) or a primer you write — grounded in the book's domain so it
-  feeds forward (teach generators *with* the book's running example).
+  feeds forward (teach generators *with* the book's running example). A primer
+  you write is a Diátaxis *explanation* — author it per
+  [explanations.md](explanations.md) and save it under `explanations/`;
+  reading it still verifies nothing, only the primer's round does.
 - Inserted units are deliberately small: one concept, one round usually
   suffices. If an inserted unit itself needs splitting, the gap was
   under-scoped — re-diagnose.

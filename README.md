@@ -83,6 +83,7 @@ Around that loop:
 
 - **Gap detection.** When a miss traces back to something the author assumed you knew, the skill inserts a short primer before moving on. Prerequisites are checked with a quick diagnostic, not by asking "do you know X?"
 - **A capstone project** spans the book, on the principle that passing exams isn't the same as being able to build: exercises verify understanding, the project produces capability.
+- **Explanations on demand.** Ask why the author chose a design, what's really going on under a concept, or how two confusable things differ — for the book's content or its prerequisites — and you get a discursive explanation (the why and the connections, not a re-summary of the reading), saved and cross-linked to the glossary.
 - **Artifacts per chapter** — a searchable cross-linked glossary, Cornell notes, the lines you chose to keep, and concept maps, in your words where possible.
 - **Adult defaults.** Skip anything (it's logged, not judged). Disagree with the author — after you can state their strongest case.
 
