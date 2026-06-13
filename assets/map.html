@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concept Map</title>
+<style>
+  :root { --paper: #fafaf7; --ink: #1c1e21; --muted: #6b7280; --line: #d8d8d2; --accent: #0f6b54; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+    font: 16px/1.6 Georgia, 'Times New Roman', serif; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+  header { border-bottom: 3px double var(--ink); padding-bottom: 1rem; margin-bottom: 1.6rem; }
+  .eyebrow { font: 700 0.72rem/1 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 1.7rem; margin: 0.4rem 0 0.2rem; }
+  .meta { color: var(--muted); font-size: 0.92rem; }
+  section { margin: 0 0 2.2rem; }
+  h2 { font: 700 0.78rem/1 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink); border-bottom: 1px solid var(--ink);
+    padding-bottom: 0.4rem; margin: 0 0 0.9rem; }
+  h2 .ch { float: right; font-weight: 400; color: var(--muted); text-transform: none;
+    letter-spacing: 0.04em; }
+  .map-caption { color: var(--muted); font-size: 0.85rem; margin-top: 0.5rem; }
+  .map-holder { border: 1px solid var(--line); background: #fff; padding: 1rem; overflow: auto; }
+  .map-holder pre { font: 0.8rem/1.5 'SF Mono', Consolas, monospace; margin: 0; white-space: pre-wrap; }
+  .legend { margin-top: 0.8rem; font: 0.85rem 'Helvetica Neue', Arial, sans-serif; color: var(--muted); }
+  .legend li { margin-bottom: 0.2rem; }
+  @media print { body { background: #fff; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Concept maps · small on purpose · every edge a sentence</div>
+    <h1 id="book"></h1>
+    <div class="meta" id="meta"></div>
+  </header>
+  <main id="maps"></main>
+  <ul class="legend" id="legend"></ul>
+</div>
+<script>
+const DATA = /*__DATA_JSON__*/null;
+function el(t, a = {}, ...c) { const e = document.createElement(t);
+  for (const [k, v] of Object.entries(a)) { if (k === 'text') e.textContent = v; else e.setAttribute(k, v); }
+  for (const x of c) e.append(x); return e; }
+if (!DATA) {
+  document.getElementById('book').textContent = 'Template not built';
+  document.getElementById('meta').textContent =
+    'Run scripts/build_page.py map artifacts/map.yaml to generate.';
+} else {
+  document.title = (DATA.book || 'Concept maps') + ' — concept maps';
+  document.getElementById('book').textContent = DATA.book || 'Concept maps';
+  const maps = DATA.maps || [];
+  document.getElementById('meta').textContent =
+    maps.length + ' map' + (maps.length === 1 ? '' : 's') + ' · ≤9 concepts each, read every edge as a sentence';
+  const root = document.getElementById('maps');
+  const holders = [];
+  maps.forEach(m => {
+    const sec = el('section');
+    const h = el('h2', { text: m.title });
+    if (m.chapter != null) h.append(el('span', { class: 'ch', text: 'ch. ' + m.chapter }));
+    sec.append(h);
+    const holder = el('div', { class: 'map-holder' });
+    holder.append(el('pre', { text: m.mermaid }));
+    sec.append(holder);
+    if (m.caption) sec.append(el('div', { class: 'map-caption', text: m.caption }));
+    root.append(sec);
+    holders.push([holder, m.mermaid]);
+  });
+  (DATA.legend || []).forEach(l => document.getElementById('legend').append(el('li', { text: l })));
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js';
+  s.onload = async () => {
+    mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+    for (const [holder, src] of holders) {
+      const keep = holder.firstChild;
+      try {
+        const div = el('div', { class: 'mermaid', text: src });
+        holder.replaceChildren(div);
+        await mermaid.run({ nodes: [div] });
+      } catch (e) { holder.replaceChildren(keep); /* bad source: readable text stays */ }
+    }
+  };
+  document.head.append(s); /* offline: readable source stays */
+}
+</script>
+</body>
+</html>

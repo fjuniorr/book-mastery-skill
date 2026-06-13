@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "book-mastery/cards.schema.json",
+  "title": "Book Mastery card bank / review set",
+  "description": "Validates both cards/cards.yaml (created required) and reviews/due.yaml (created omitted).",
+  "type": "object",
+  "required": ["cards"],
+  "additionalProperties": false,
+  "properties": {
+    "cards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "unit", "q", "a"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^card-[0-9]{4,}$" },
+          "unit": { "type": ["string", "number"] },
+          "created": { "type": "string", "format": "date" },
+          "q": {
+            "type": "string",
+            "minLength": 1,
+            "description": "One retrieval, one correct answer, minimal context included (formulation rules 1, 4, 5)."
+          },
+          "a": { "type": "string", "minLength": 1 },
+          "code": { "type": ["string", "null"] }
+        }
+      }
+    }
+  }
+}

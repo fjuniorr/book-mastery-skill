@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kept Lines</title>
+<style>
+  :root { --paper: #fafaf7; --ink: #1c1e21; --muted: #6b7280; --line: #d8d8d2; --accent: #0f6b54; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+    font: 17px/1.7 Georgia, 'Times New Roman', serif; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
+  header { border-bottom: 3px double var(--ink); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .eyebrow { font: 700 0.72rem/1 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 1.7rem; margin: 0.4rem 0 0.2rem; }
+  .meta { color: var(--muted); font-size: 0.92rem; }
+  h2 { font: 700 0.78rem/1 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--muted); margin: 2.6rem 0 1.4rem; }
+  blockquote { margin: 0 0 2.2rem; padding: 0; }
+  blockquote .q { font-size: 1.3rem; line-height: 1.55; }
+  blockquote .q::before { content: '\201C'; color: var(--accent); font-size: 2rem;
+    line-height: 0; vertical-align: -0.35rem; margin-right: 0.15rem; }
+  blockquote .loc { display: block; margin-top: 0.5rem; color: var(--muted);
+    font: 0.85rem 'Helvetica Neue', Arial, sans-serif; }
+  blockquote .why { display: block; margin-top: 0.35rem; font-style: italic; font-size: 0.95rem; }
+  blockquote .why::before { content: 'kept because: '; color: var(--muted); font-style: normal;
+    font: 0.78rem 'Helvetica Neue', Arial, sans-serif; text-transform: uppercase; letter-spacing: 0.08em; }
+  @media print { body { background: #fff; } blockquote { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Kept lines · chosen by you while reading</div>
+    <h1 id="book"></h1>
+    <div class="meta" id="meta"></div>
+  </header>
+  <main id="groups"></main>
+</div>
+<script>
+const DATA = /*__DATA_JSON__*/null;
+function el(t, a = {}, ...c) { const e = document.createElement(t);
+  for (const [k, v] of Object.entries(a)) { if (k === 'text') e.textContent = v; else e.setAttribute(k, v); }
+  for (const x of c) e.append(x); return e; }
+if (!DATA) {
+  document.getElementById('book').textContent = 'Template not built';
+  document.getElementById('meta').textContent =
+    'Run scripts/build_page.py quotes artifacts/quotes.yaml to generate.';
+} else {
+  document.title = (DATA.book || 'Kept lines') + ' — kept lines';
+  document.getElementById('book').textContent = DATA.book || 'Kept lines';
+  const qs = DATA.quotes || [];
+  document.getElementById('meta').textContent = qs.length + ' lines worth keeping forever';
+  const root = document.getElementById('groups');
+  const byCh = new Map();
+  qs.forEach(q => {
+    const k = q.chapter != null ? String(q.chapter) : '';
+    if (!byCh.has(k)) byCh.set(k, []);
+    byCh.get(k).push(q);
+  });
+  [...byCh.keys()].sort((a, b) => (Number(a) || 0) - (Number(b) || 0)).forEach(k => {
+    if (k !== '') root.append(el('h2', { text: 'Chapter ' + k }));
+    byCh.get(k).forEach(q => {
+      const b = el('blockquote');
+      b.append(el('div', { class: 'q', text: q.text + '\u201D' }));
+      if (q.location) b.append(el('span', { class: 'loc', text: q.location }));
+      if (q.why) b.append(el('span', { class: 'why', text: q.why }));
+      root.append(b);
+    });
+  });
+}
+</script>
+</body>
+</html>

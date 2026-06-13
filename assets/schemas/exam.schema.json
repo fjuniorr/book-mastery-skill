@@ -1,0 +1,449 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "book-mastery/exam.schema.json",
+  "title": "Book Mastery exam",
+  "type": "object",
+  "required": [
+    "title",
+    "unit",
+    "items"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "book": {
+      "type": "string"
+    },
+    "unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "key_points": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "maxItems": 7
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "items": {
+        "$ref": "#/$defs/item"
+      }
+    },
+    "round": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Which round of this unit's exam this is. Round N+1 items are fresh items targeting round N's misses."
+    }
+  },
+  "$defs": {
+    "base": {
+      "type": "object",
+      "required": [
+        "type",
+        "stem"
+      ],
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "stem": {
+          "type": "string",
+          "minLength": 1
+        },
+        "code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "objective": {
+          "type": "string",
+          "description": "Which learning objective this item maps to (agent bookkeeping; not shown on the page)."
+        },
+        "visualize": {
+          "type": "boolean",
+          "description": "Add post-submission Python Tutor links (learner's code for code_run, the item's code otherwise, plus the solution if present). ONLY for genuinely runnable Python — Python Tutor errors on pseudocode."
+        }
+      }
+    },
+    "item": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/mcq"
+        },
+        {
+          "$ref": "#/$defs/parsons"
+        },
+        {
+          "$ref": "#/$defs/matching"
+        },
+        {
+          "$ref": "#/$defs/freeform"
+        },
+        {
+          "$ref": "#/$defs/code_run"
+        },
+        {
+          "$ref": "#/$defs/diagram_label"
+        }
+      ]
+    },
+    "mcq": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/base"
+        }
+      ],
+      "type": "object",
+      "required": [
+        "type",
+        "stem",
+        "options"
+      ],
+      "properties": {
+        "type": {
+          "const": "mcq"
+        },
+        "options": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 5,
+          "contains": {
+            "type": "object",
+            "properties": {
+              "correct": {
+                "const": true
+              }
+            },
+            "required": [
+              "correct"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "text"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "text": {
+                "type": "string",
+                "minLength": 1
+              },
+              "correct": {
+                "type": "boolean"
+              },
+              "misconception": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The specific wrong belief this distractor detects. Shown on a wrong pick; drives the Socratic follow-up."
+              }
+            },
+            "if": {
+              "not": {
+                "properties": {
+                  "correct": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "correct"
+                ]
+              }
+            },
+            "then": {
+              "required": [
+                "misconception"
+              ]
+            }
+          }
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "parsons": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/base"
+        }
+      ],
+      "type": "object",
+      "required": [
+        "type",
+        "stem",
+        "lines"
+      ],
+      "properties": {
+        "type": {
+          "const": "parsons"
+        },
+        "lines": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 12,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "ALWAYS in correct order; the page shuffles them."
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "matching": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/base"
+        }
+      ],
+      "type": "object",
+      "required": [
+        "type",
+        "stem",
+        "pairs"
+      ],
+      "properties": {
+        "type": {
+          "const": "matching"
+        },
+        "pairs": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "required": [
+              "left",
+              "right"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "left": {
+                "type": "string",
+                "minLength": 1
+              },
+              "right": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "freeform": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/base"
+        }
+      ],
+      "type": "object",
+      "required": [
+        "type",
+        "stem"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "free_text",
+            "trace",
+            "trace_backward",
+            "summarization",
+            "cloze",
+            "minimal_fix"
+          ]
+        },
+        "rubric": {
+          "type": "string",
+          "description": "Grading guidance, doubling as the reference notes the page REVEALS after submission (before reflection). Write it to be read by the learner too."
+        },
+        "solution": {
+          "type": "string",
+          "description": "Reference solution (runnable Python). NOT stripped: revealed post-submission via a Python Tutor link. Use with visualize: true."
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "code_run": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/base"
+        },
+        {
+          "not": {
+            "required": [
+              "solution",
+              "solutions"
+            ]
+          }
+        }
+      ],
+      "type": "object",
+      "required": [
+        "type",
+        "stem",
+        "checks"
+      ],
+      "properties": {
+        "type": {
+          "const": "code_run"
+        },
+        "language": {
+          "const": "python",
+          "description": "Only python for now (runs in-browser via Pyodide; needs internet on first run)."
+        },
+        "starter_code": {
+          "type": "string",
+          "description": "Never a blank page: seed with a stub at the interesting boundary."
+        },
+        "checks": {
+          "type": "object",
+          "additionalProperties": false,
+          "oneOf": [
+            {
+              "required": [
+                "expected_output"
+              ]
+            },
+            {
+              "required": [
+                "asserts"
+              ]
+            }
+          ],
+          "properties": {
+            "expected_output": {
+              "type": "string",
+              "description": "Exact stdout (trimmed) the code must produce. State the target in the stem too."
+            },
+            "asserts": {
+              "type": "string",
+              "description": "Python run after the learner's code in the same namespace; raising = fail. Visible in page source, so don't hide secrets here."
+            }
+          }
+        },
+        "rubric": {
+          "type": "string",
+          "description": "Agent grading guidance for non-passing submissions; revealed on the page after submission."
+        },
+        "solution": {
+          "type": "string",
+          "description": "Reference solution (runnable Python). NOT stripped: revealed post-submission via a Python Tutor link. Use with visualize: true."
+        },
+        "bonuses": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "description": "Morsels-style bonus tiers, unlocked sequentially after base checks pass. Most at home in prerequisite units.",
+          "items": {
+            "type": "object",
+            "required": [
+              "asserts"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "asserts": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "solutions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "description": "Graduated solution walkthrough, revealed post-submission in order. Prerequisite units graduate along IDIOM (works -> clean -> idiomatic); book units graduate along the CONCEPT (naive -> the author's design). Mutually exclusive with `solution`.",
+          "items": {
+            "type": "object",
+            "required": [
+              "code"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "commentary": {
+                "type": "string",
+                "description": "What this step improves over the previous and at what cost."
+              }
+            }
+          }
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "diagram_label": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/base"
+        }
+      ],
+      "type": "object",
+      "required": [
+        "type",
+        "stem",
+        "svg",
+        "slots"
+      ],
+      "properties": {
+        "type": {
+          "const": "diagram_label"
+        },
+        "svg": {
+          "type": "string",
+          "pattern": "<svg",
+          "description": "Inline SVG with visible numbered markers (1..n) at the parts to label."
+        },
+        "slots": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "required": [
+              "marker",
+              "correct"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "marker": {
+                "type": [
+                  "string",
+                  "integer"
+                ]
+              },
+              "correct": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "extra_labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional distractor labels mixed into the pool — same diagnostic duty as MCQ distractors."
+        }
+      },
+      "unevaluatedProperties": false
+    }
+  }
+}

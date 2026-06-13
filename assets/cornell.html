@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cornell Notes</title>
+<style>
+  :root { --paper: #fdfdfa; --ink: #1c1e21; --muted: #6b7280; --line: #c9c9c0;
+    --accent: #0f6b54; --rule: #e4e4da; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #ececе4; background: #ecece4; color: var(--ink);
+    font: 15.5px/1.6 Georgia, 'Times New Roman', serif; }
+  .sheet { max-width: 880px; margin: 1.5rem auto; background: var(--paper);
+    border: 1px solid var(--line); box-shadow: 0 2px 14px rgba(0,0,0,0.07);
+    display: flex; flex-direction: column; min-height: calc(100vh - 3rem); }
+  .head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
+    padding: 1.1rem 1.4rem 0.9rem; border-bottom: 2px solid var(--ink); }
+  .head .eyebrow { font: 700 0.7rem/1 'Helvetica Neue', Arial, sans-serif;
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); }
+  .head h1 { font-size: 1.35rem; margin: 0.25rem 0 0; }
+  .head .meta { text-align: right; font: 0.8rem 'Helvetica Neue', Arial, sans-serif;
+    color: var(--muted); white-space: nowrap; }
+  .body { flex: 1; display: grid; grid-template-columns: minmax(170px, 29%) 1fr; }
+  .cues { border-right: 2px solid var(--ink); padding: 1.1rem 1rem; }
+  .col-label { font: 700 0.62rem/1 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 0.9rem; }
+  .cue { margin: 0 0 1.1rem; font-size: 0.92rem; font-style: italic; }
+  .cue::before { content: '?'; font-style: normal; font-weight: 700; color: var(--accent);
+    margin-right: 0.45rem; }
+  .notes { padding: 1.1rem 1.4rem;
+    background: repeating-linear-gradient(transparent, transparent 27px, var(--rule) 27px, var(--rule) 28px);
+    background-origin: content-box; }
+  .note { margin: 0 0 1rem; }
+  .note h3 { font-size: 0.98rem; margin: 0 0 0.2rem; }
+  .note h3::before { content: '— '; color: var(--accent); }
+  .note p { margin: 0; font-size: 0.94rem; }
+  .summary { border-top: 2px solid var(--ink); padding: 1rem 1.4rem 1.2rem; background: #f4f6f3; }
+  .summary p { margin: 0.3rem 0 0; font-size: 1rem; }
+  @media (max-width: 620px) { .body { grid-template-columns: 1fr; }
+    .cues { border-right: none; border-bottom: 2px solid var(--ink); } }
+  @media print { body { background: #fff; } .sheet { margin: 0; max-width: none;
+    border: none; box-shadow: none; min-height: auto; } }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="head">
+    <div>
+      <div class="eyebrow" id="book"></div>
+      <h1 id="title"></h1>
+    </div>
+    <div class="meta" id="meta"></div>
+  </div>
+  <div class="body">
+    <div class="cues">
+      <div class="col-label">Cues — from your reflections &amp; recovered misses</div>
+      <div id="cue-list"></div>
+    </div>
+    <div class="notes">
+      <div class="col-label">Notes</div>
+      <div id="note-list"></div>
+    </div>
+  </div>
+  <div class="summary">
+    <div class="col-label">Summary — in your words</div>
+    <p id="summary"></p>
+  </div>
+</div>
+<script>
+const DATA = /*__DATA_JSON__*/null;
+function el(t, a = {}, ...c) { const e = document.createElement(t);
+  for (const [k, v] of Object.entries(a)) { if (k === 'text') e.textContent = v; else e.setAttribute(k, v); }
+  for (const x of c) e.append(x); return e; }
+if (!DATA) {
+  document.getElementById('title').textContent = 'Template not built';
+  document.getElementById('summary').textContent =
+    'Run scripts/build_page.py cornell artifacts/cornell/ch<NN>.yaml to generate.';
+} else {
+  document.title = (DATA.book ? DATA.book + ' — ' : '') + 'Ch. ' + DATA.chapter + ' Cornell notes';
+  document.getElementById('book').textContent = DATA.book || '';
+  document.getElementById('title').textContent = 'Chapter ' + DATA.chapter + ' · ' + DATA.title;
+  document.getElementById('meta').textContent = DATA.date ? 'completed ' + DATA.date : '';
+  const cl = document.getElementById('cue-list');
+  (DATA.cues || []).forEach(c => cl.append(el('p', { class: 'cue', text: c })));
+  const nl = document.getElementById('note-list');
+  (DATA.notes || []).forEach(n => {
+    const b = el('div', { class: 'note' });
+    if (n.heading) b.append(el('h3', { text: n.heading }));
+    b.append(el('p', { text: n.text }));
+    nl.append(b);
+  });
+  document.getElementById('summary').textContent = DATA.summary || '';
+}
+</script>
+</body>
+</html>

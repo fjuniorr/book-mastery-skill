@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flashcard Review</title>
+<style>
+  :root {
+    --paper: #fafaf7; --ink: #1c1e21; --muted: #6b7280; --line: #d8d8d2;
+    --accent: #0f6b54; --accent-soft: #e3f0eb;
+    --code-bg: #14161a; --code-ink: #e8e6e3;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+    font: 17px/1.6 Georgia, 'Times New Roman', serif; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
+  header { border-bottom: 3px double var(--ink); padding-bottom: 1rem; margin-bottom: 2rem;
+    display: flex; align-items: baseline; justify-content: space-between; }
+  .eyebrow { font: 700 0.72rem/1 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--accent); }
+  #progress { color: var(--muted); font: 0.85rem 'Helvetica Neue', Arial, sans-serif; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 10px;
+    padding: 2rem 1.75rem; min-height: 12rem; box-shadow: 0 1px 0 var(--line); }
+  .unit-tag { font: 700 0.68rem/1 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 0.8rem; }
+  .q { font-size: 1.15rem; font-weight: 600; }
+  pre { background: var(--code-bg); color: var(--code-ink); padding: 0.9rem 1rem; border-radius: 6px;
+    overflow-x: auto; font: 0.85rem/1.55 'SF Mono', 'Fira Code', Consolas, monospace; }
+  .a { display: none; margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px dashed var(--line); }
+  .controls { margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  button { font: 600 0.9rem 'Helvetica Neue', Arial, sans-serif; padding: 0.6rem 1.1rem;
+    border: 1px solid var(--ink); border-radius: 6px; background: #fff; cursor: pointer; flex: 1; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  #reveal { background: var(--ink); color: var(--paper); }
+  .rate { display: none; }
+  button[data-rate="again"]:hover { border-color: #b3402a; color: #b3402a; }
+  button[data-rate="hard"]:hover { border-color: #b07a1f; color: #b07a1f; }
+  button[data-rate="good"]:hover, button[data-rate="easy"]:hover { border-color: var(--accent); color: var(--accent); }
+  kbd { font: 0.75rem 'SF Mono', Consolas, monospace; color: var(--muted); }
+  #done { display: none; }
+  #done textarea { width: 100%; min-height: 9rem; border: 1px solid var(--line); border-radius: 6px;
+    padding: 0.7rem; font: 0.78rem/1.5 'SF Mono', Consolas, monospace; }
+  .hint { color: var(--muted); font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Book Mastery · Review</div>
+    <div id="progress"></div>
+  </header>
+
+  <div id="session">
+    <div class="card">
+      <div class="unit-tag" id="unit-tag"></div>
+      <div class="q" id="q"></div>
+      <div id="q-code"></div>
+      <div class="a" id="a"></div>
+    </div>
+    <div class="controls">
+      <button id="reveal">Reveal answer <kbd>space</kbd></button>
+    </div>
+    <div class="controls rate" id="rate">
+      <button data-rate="again">Again <kbd>1</kbd></button>
+      <button data-rate="hard">Hard <kbd>2</kbd></button>
+      <button data-rate="good">Good <kbd>3</kbd></button>
+      <button data-rate="easy">Easy <kbd>4</kbd></button>
+    </div>
+  </div>
+
+  <div id="done">
+    <h2>Review complete</h2>
+    <p class="hint">Copy the ratings below and paste them back to your agent so it can update the card schedule — or download the file into the workspace.</p>
+    <textarea id="export-json" readonly></textarea>
+    <p class="controls">
+      <button id="copy">Copy ratings</button>
+      <button id="download">Download review.json</button>
+    </p>
+  </div>
+</div>
+<script>
+/* The build script replaces the null below with the due cards as JSON. */
+const DATA = /*__DATA_JSON__*/null;
+
+const state = { queue: [], ratings: [], revealed: false };
+
+if (!DATA || !DATA.cards || !DATA.cards.length) {
+  document.getElementById('q').textContent = DATA
+    ? 'No cards due. Nice.' 
+    : 'Template not built — run scripts/build_page.py with a review YAML file.';
+  document.getElementById('reveal').style.display = 'none';
+} else {
+  state.queue = shuffle([...DATA.cards]);
+  show();
+}
+
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function show() {
+  const c = state.queue[0];
+  state.revealed = false;
+  document.getElementById('progress').textContent =
+    `${state.ratings.filter(r => r.rating !== 'again').length} done · ${state.queue.length} to go`;
+  document.getElementById('unit-tag').textContent = `${c.id} · unit ${c.unit}`;
+  document.getElementById('q').textContent = c.q;
+  const codeBox = document.getElementById('q-code');
+  codeBox.replaceChildren();
+  if (c.code) { const pre = document.createElement('pre'); pre.textContent = c.code; codeBox.append(pre); }
+  const a = document.getElementById('a');
+  a.style.display = 'none'; a.textContent = c.a;
+  document.getElementById('reveal').style.display = '';
+  document.getElementById('rate').style.display = 'none';
+}
+
+function reveal() {
+  if (state.revealed || !state.queue.length) return;
+  state.revealed = true;
+  document.getElementById('a').style.display = 'block';
+  document.getElementById('reveal').style.display = 'none';
+  document.getElementById('rate').style.display = 'flex';
+}
+
+function rate(rating) {
+  if (!state.revealed) return;
+  const c = state.queue.shift();
+  state.ratings.push({ id: c.id, rating, ts: new Date().toISOString() });
+  if (rating === 'again') state.queue.push(c); /* re-serve at end of session */
+  if (state.queue.length) show(); else finish();
+}
+
+function finish() {
+  document.getElementById('session').style.display = 'none';
+  document.getElementById('done').style.display = 'block';
+  const json = JSON.stringify({ kind: 'review-results', ratings: state.ratings }, null, 2);
+  document.getElementById('export-json').value = json;
+  document.getElementById('copy').onclick = () =>
+    navigator.clipboard && navigator.clipboard.writeText(json);
+  document.getElementById('download').onclick = () => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    a.download = 'review.json'; a.click();
+  };
+}
+
+document.getElementById('reveal').addEventListener('click', reveal);
+document.querySelectorAll('#rate button').forEach(b =>
+  b.addEventListener('click', () => rate(b.dataset.rate)));
+document.addEventListener('keydown', e => {
+  if (e.key === ' ') { e.preventDefault(); reveal(); }
+  const map = { '1': 'again', '2': 'hard', '3': 'good', '4': 'easy' };
+  if (map[e.key]) rate(map[e.key]);
+});
+</script>
+<!--__SCRATCHPAD__-->
+</body>
+</html>

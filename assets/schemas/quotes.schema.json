@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "book-mastery/quotes.schema.json",
+  "title": "Kept lines (book-wide, cumulative)",
+  "type": "object",
+  "required": [
+    "quotes"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "book": {
+      "type": "string"
+    },
+    "quotes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "A short passage (a line or two) the LEARNER chose — never agent-selected."
+          },
+          "location": {
+            "type": "string"
+          },
+          "chapter": {
+            "type": [
+              "string",
+              "integer"
+            ]
+          },
+          "why": {
+            "type": "string",
+            "description": "The learner's reason, in their words."
+          }
+        }
+      }
+    }
+  }
+}

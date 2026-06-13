@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glossary</title>
+<style>
+  :root { --paper: #fafaf7; --ink: #1c1e21; --muted: #6b7280; --line: #d8d8d2;
+    --accent: #0f6b54; --accent-soft: #e3f0eb; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+    font: 16px/1.6 Georgia, 'Times New Roman', serif; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
+  header { border-bottom: 3px double var(--ink); padding-bottom: 1rem; margin-bottom: 1.4rem; }
+  .eyebrow { font: 700 0.72rem/1 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 1.7rem; margin: 0.4rem 0 0.2rem; }
+  .meta { color: var(--muted); font-size: 0.92rem; }
+  .toolbar { position: sticky; top: 0; background: var(--paper); padding: 0.7rem 0 0.6rem;
+    border-bottom: 1px solid var(--line); margin-bottom: 1.4rem; z-index: 5; }
+  #search { width: 100%; padding: 0.6rem 0.9rem; border: 1px solid var(--ink); border-radius: 8px;
+    font: 1rem Georgia, serif; background: #fff; }
+  #search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .letters { margin-top: 0.5rem; font: 0.8rem 'Helvetica Neue', Arial, sans-serif; }
+  .letters a { color: var(--accent); text-decoration: none; margin-right: 0.55rem; font-weight: 700; }
+  .letters a:hover { text-decoration: underline; }
+  #count { float: right; color: var(--muted); }
+  .letter-head { font: 700 1rem 'Helvetica Neue', Arial, sans-serif; color: var(--muted);
+    border-bottom: 1px solid var(--line); margin: 1.6rem 0 0.8rem; padding-bottom: 0.2rem; }
+  .entry { margin: 0 0 1.15rem; scroll-margin-top: 7rem; }
+  .entry.flash { animation: flash 1.6s ease-out; }
+  @keyframes flash { 0% { background: var(--accent-soft); } 100% { background: transparent; } }
+  @media (prefers-reduced-motion: reduce) { .entry.flash { animation: none; } }
+  .term { font-weight: 700; font-size: 1.05rem; }
+  .unit-ref { color: var(--muted); font-size: 0.78rem; font-family: 'Helvetica Neue', Arial, sans-serif;
+    margin-left: 0.45rem; }
+  .def { margin: 0.15rem 0 0.3rem; font-size: 0.97rem; }
+  .see { font: 0.78rem 'Helvetica Neue', Arial, sans-serif; }
+  .see .lbl { color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.66rem; }
+  .see a { display: inline-block; color: var(--accent); text-decoration: none;
+    border: 1px solid var(--accent); border-radius: 999px; padding: 0.08rem 0.6rem;
+    margin: 0 0.25rem 0.25rem 0; }
+  .see a:hover { background: var(--accent); color: #fff; }
+  .hidden { display: none; }
+  #empty { color: var(--muted); display: none; }
+  @media print { .toolbar { display: none; } body { background: #fff; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Glossary · grows with every chapter</div>
+    <h1 id="book"></h1>
+    <div class="meta" id="meta"></div>
+  </header>
+  <div class="toolbar">
+    <input id="search" type="search" placeholder="Search terms and definitions…" autocomplete="off">
+    <div class="letters" id="letters"><span id="count"></span></div>
+  </div>
+  <main id="entries"></main>
+  <p id="empty">No terms match — try fewer letters.</p>
+</div>
+<script>
+const DATA = /*__DATA_JSON__*/null;
+function el(t, a = {}, ...c) { const e = document.createElement(t);
+  for (const [k, v] of Object.entries(a)) { if (k === 'text') e.textContent = v; else e.setAttribute(k, v); }
+  for (const x of c) e.append(x); return e; }
+const slug = s => 't-' + String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+if (!DATA) {
+  document.getElementById('book').textContent = 'Template not built';
+  document.getElementById('meta').textContent =
+    'Run scripts/build_page.py glossary artifacts/glossary.yaml to generate.';
+} else { render(DATA); }
+
+function render(d) {
+  document.title = (d.book || 'Glossary') + ' — glossary';
+  document.getElementById('book').textContent = d.book || 'Glossary';
+  const entries = [...(d.entries || [])].sort((a, b) =>
+    a.term.localeCompare(b.term, undefined, { sensitivity: 'base' }));
+  document.getElementById('meta').textContent = entries.length + ' terms · in your own words where possible';
+  const known = new Set(entries.map(e => slug(e.term)));
+  const root = document.getElementById('entries');
+  let currentLetter = '';
+  const letters = [];
+  entries.forEach(e => {
+    const L = e.term[0].toUpperCase();
+    if (L !== currentLetter) {
+      currentLetter = L; letters.push(L);
+      root.append(el('div', { class: 'letter-head', id: 'L-' + L, text: L }));
+    }
+    const box = el('div', { class: 'entry', id: slug(e.term),
+      'data-text': (e.term + ' ' + e.definition).toLowerCase() });
+    const t = el('div', { class: 'term', text: e.term });
+    if (e.unit) t.append(el('span', { class: 'unit-ref', text: 'unit ' + e.unit }));
+    box.append(t);
+    box.append(el('p', { class: 'def', text: e.definition }));
+    if (e.see_also && e.see_also.length) {
+      const see = el('div', { class: 'see' });
+      see.append(el('span', { class: 'lbl', text: 'see also ' }));
+      e.see_also.forEach(ref => {
+        const id = slug(ref);
+        if (known.has(id)) {
+          const a = el('a', { href: '#' + id, text: ref });
+          a.addEventListener('click', () => {
+            const s = document.getElementById('search');
+            if (s.value) { s.value = ''; applyFilter(''); } /* a hidden target can't be jumped to */
+            setTimeout(() => {
+              const target = document.getElementById(id);
+              target.classList.remove('flash'); void target.offsetWidth; target.classList.add('flash');
+            }, 0);
+          });
+          see.append(a);
+        } else {
+          see.append(el('a', { text: ref + ' (not yet defined)',
+            style: 'border-style:dashed;pointer-events:none;color:var(--muted);border-color:var(--line)' }));
+        }
+      });
+      box.append(see);
+    }
+    root.append(box);
+  });
+  const lettersBar = document.getElementById('letters');
+  letters.forEach(L => lettersBar.insertBefore(el('a', { href: '#L-' + L, text: L }),
+    document.getElementById('count')));
+  const search = document.getElementById('search');
+  search.addEventListener('input', () => applyFilter(search.value));
+  applyFilter('');
+}
+
+function applyFilter(q) {
+  q = q.trim().toLowerCase();
+  let shown = 0;
+  document.querySelectorAll('.entry').forEach(e => {
+    const hit = !q || e.dataset.text.includes(q);
+    e.classList.toggle('hidden', !hit);
+    if (hit) shown++;
+  });
+  /* hide letter heads whose entries are all hidden */
+  document.querySelectorAll('.letter-head').forEach(h => {
+    let n = h.nextElementSibling, any = false;
+    while (n && !n.classList.contains('letter-head')) {
+      if (n.classList.contains('entry') && !n.classList.contains('hidden')) { any = true; break; }
+      n = n.nextElementSibling;
+    }
+    h.classList.toggle('hidden', !any);
+  });
+  document.getElementById('count').textContent = q ? shown + ' match' + (shown === 1 ? '' : 'es') : '';
+  document.getElementById('empty').style.display = shown ? 'none' : 'block';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exam</title>
+<style>
+  :root {
+    --paper: #fafaf7; --ink: #1c1e21; --muted: #6b7280; --line: #d8d8d2;
+    --accent: #0f6b54; --accent-soft: #e3f0eb; --wrong: #b3402a; --wrong-soft: #f7e8e4;
+    --code-bg: #14161a; --code-ink: #e8e6e3;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font: 16px/1.6 Georgia, 'Times New Roman', serif;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
+  header { border-bottom: 3px double var(--ink); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .eyebrow { font: 700 0.72rem/1 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 1.6rem; margin: 0.4rem 0 0.2rem; }
+  .sub { color: var(--muted); font-size: 0.95rem; }
+  .item { margin: 0 0 2.25rem; padding-left: 1rem; border-left: 3px solid var(--line); }
+  .item.graded-right { border-left-color: var(--accent); }
+  .item.graded-wrong { border-left-color: var(--wrong); }
+  .qnum { font: 700 0.72rem/1 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+  .stem { font-weight: 600; margin-bottom: 0.75rem; }
+  pre { background: var(--code-bg); color: var(--code-ink); padding: 0.9rem 1rem; border-radius: 6px;
+    overflow-x: auto; font: 0.85rem/1.55 'SF Mono', 'Fira Code', Consolas, monospace; }
+  .opt { display: flex; gap: 0.6rem; align-items: baseline; padding: 0.45rem 0.6rem;
+    border-radius: 6px; cursor: pointer; }
+  .opt:hover { background: var(--accent-soft); }
+  .opt input { accent-color: var(--accent); }
+  textarea { width: 100%; min-height: 6.5rem; border: 1px solid var(--line); border-radius: 6px;
+    padding: 0.7rem; font: 0.9rem/1.55 'SF Mono', 'Fira Code', Consolas, monospace;
+    background: #fff; resize: vertical; }
+  textarea:focus, select:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .parsons li { background: #fff; border: 1px solid var(--line); border-radius: 6px;
+    padding: 0.4rem 0.6rem; margin: 0.3rem 0; display: flex; align-items: center; gap: 0.6rem;
+    font: 0.85rem/1.5 'SF Mono', 'Fira Code', Consolas, monospace; white-space: pre; }
+  .parsons { list-style: none; padding: 0; }
+  .parsons .movers { margin-left: auto; display: flex; gap: 0.25rem; }
+  .parsons button { font-size: 0.8rem; padding: 0.1rem 0.5rem; }
+  .match-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; align-items: center;
+    margin: 0.4rem 0; }
+  select { padding: 0.4rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.9rem;
+    background: #fff; width: 100%; }
+  button { font: 600 0.9rem 'Helvetica Neue', Arial, sans-serif; padding: 0.55rem 1.1rem;
+    border: 1px solid var(--ink); border-radius: 6px; background: #fff; cursor: pointer; }
+  button.primary { background: var(--ink); color: var(--paper); }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button.primary:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .feedback { margin-top: 0.6rem; padding: 0.6rem 0.8rem; border-radius: 6px; font-size: 0.92rem; }
+  .feedback.right { background: var(--accent-soft); }
+  .feedback.wrong { background: var(--wrong-soft); }
+  #results, #keypoints { display: none; margin-top: 2.5rem; border-top: 3px double var(--ink); padding-top: 1.25rem; }
+  #score { font-size: 1.15rem; font-weight: 700; }
+  .export textarea { min-height: 9rem; font-size: 0.78rem; }
+  .hint { color: var(--muted); font-size: 0.85rem; }
+  .code-editor { width: 100%; min-height: 9rem; border: 1px solid var(--line); border-radius: 6px;
+    padding: 0.7rem; font: 0.85rem/1.55 'SF Mono', 'Fira Code', Consolas, monospace;
+    background: var(--code-bg); color: var(--code-ink); resize: vertical; tab-size: 4; }
+  .CodeMirror { border: 1px solid var(--line); border-radius: 6px; height: auto;
+    font: 0.85rem/1.55 'SF Mono', 'Fira Code', Consolas, monospace; }
+  .run-out { background: #0c0e11; color: #c7e3d4; padding: 0.7rem 0.9rem; border-radius: 6px;
+    font: 0.82rem/1.5 'SF Mono', Consolas, monospace; white-space: pre-wrap; min-height: 1.4rem;
+    margin-top: 0.5rem; }
+  .run-out.fail { color: #f0b9aa; }
+  .runbar { margin-top: 0.5rem; display: flex; gap: 0.5rem; align-items: center; }
+  .runbar button { flex: 0; }
+  .diagram svg { max-width: 100%; height: auto; }
+  .tutor-links { margin-top: 0.5rem; font: 0.85rem 'Helvetica Neue', Arial, sans-serif; }
+  .tutor-links a { color: var(--accent); margin-right: 1rem; }
+  .reveal { margin-top: 0.7rem; padding: 0.7rem 0.9rem; background: #f3f3ee;
+    border-left: 3px solid var(--ink); font-size: 0.92rem; }
+  .reveal .rlabel { font: 700 0.68rem/1 'Helvetica Neue', Arial, sans-serif;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.35rem; }
+  .reveal pre { margin: 0.4rem 0 0; }
+  .reveal .rubric-text { white-space: pre-wrap; }
+  .reflect { margin-top: 0.7rem; }
+  .reflect textarea { min-height: 4.5rem; font-family: Georgia, serif; font-size: 0.95rem; }
+  @media (prefers-reduced-motion: no-preference) {
+    .item { transition: border-color 0.25s ease; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Book Mastery · Exam</div>
+    <h1 id="title"></h1>
+    <div class="sub" id="subtitle"></div>
+  </header>
+  <main id="items"></main>
+  <section id="keypoints">
+    <div class="eyebrow">Key points</div>
+    <ul id="kp-list"></ul>
+  </section>
+  <section id="results">
+    <div class="eyebrow">Results</div>
+    <p id="score"></p>
+    <div class="reflect">
+      <div style="font-weight:700">Overall reflection</div>
+      <textarea id="refl-overall" placeholder="Looking at the whole exam: what's the one thing you'll do differently, and the one idea worth keeping forever?"></textarea>
+    </div>
+    <p class="hint">Finish your per-question and overall reflections — they ride along in the results. Then copy the block below and paste it back to your agent (free-text answers are graded there), or download it into the workspace.</p>
+    <div class="export">
+      <textarea id="export-json" readonly></textarea>
+      <p>
+        <button id="copy">Copy results</button>
+        <button id="download">Download results.json</button>
+      </p>
+    </div>
+  </section>
+</div>
+<script>
+/* The build script replaces the null below with the exam data as JSON. */
+const DATA = /*__DATA_JSON__*/null;
+
+if (!DATA) {
+  document.getElementById('title').textContent = 'Template not built';
+  document.getElementById('subtitle').textContent =
+    'Run scripts/build_page.py with an exam YAML file to generate a session page.';
+} else { render(DATA); }
+
+function el(tag, attrs = {}, ...children) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === 'text') e.textContent = v; else e.setAttribute(k, v);
+  }
+  for (const c of children) e.append(c);
+  return e;
+}
+
+function render(data) {
+  document.getElementById('title').textContent = data.title || 'Exam';
+  document.getElementById('subtitle').textContent =
+    `${data.book || ''}${data.unit ? ' · unit ' + data.unit : ''} — book closed.`;
+  const root = document.getElementById('items');
+  data.items.forEach((item, i) => {
+    const box = el('div', { class: 'item', id: 'item-' + i });
+    box.append(el('div', { class: 'qnum', text: `Question ${i + 1} · ${item.type}` }));
+    box.append(el('div', { class: 'stem', text: item.stem }));
+    if (item.code) box.append(el('pre', { text: item.code }));
+    if (item.type === 'mcq') renderMcq(box, item, i);
+    else if (item.type === 'parsons') renderParsons(box, item, i);
+    else if (item.type === 'matching') renderMatching(box, item, i);
+    else if (item.type === 'code_run') renderCodeRun(box, item, i);
+    else if (item.type === 'diagram_label') renderDiagram(box, item, i);
+    else renderFree(box, item, i); /* free_text, trace, trace_backward, summarization, cloze, minimal_fix */
+    const sb = el('button', { class: 'primary', type: 'button', text: 'Submit answer' });
+    sb.style.marginTop = '0.75rem';
+    sb.addEventListener('click', () => gradeItem(data, i));
+    box.append(sb);
+    root.append(box);
+  });
+  graded = { kind: 'exam-results', title: data.title, unit: data.unit,
+    round: data.round || 1, items: [] };
+  if (data.items.some(it => it.type === 'code_run')) tryCodeMirror();
+}
+
+/* ---------- code & run: in-browser Python via Pyodide (lazy, CDN) ---------- */
+const editors = {};        /* item index -> CodeMirror instance (optional) */
+const runState = {};       /* item index -> { passed, output, code } */
+window.bmEnsurePyodide = window.bmEnsurePyodide || function () {
+  if (!window.__bmPyodide) {
+    window.__bmPyodide = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js';
+      s.onload = () => loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/' })
+        .then(resolve, reject);
+      s.onerror = () => reject(new Error('Could not load the Python runtime — internet required.'));
+      document.head.append(s);
+    });
+  }
+  return window.__bmPyodide;
+};
+window.bmEnsureCodeMirror = window.bmEnsureCodeMirror || function () {
+  if (!window.__bmCM) {
+    window.__bmCM = new Promise((resolve, reject) => {
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css';
+      document.head.append(css);
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js';
+      s.onload = () => {
+        const m = document.createElement('script');
+        m.src = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js';
+        m.onload = () => resolve(window.CodeMirror);
+        m.onerror = () => resolve(window.CodeMirror); /* mode is optional */
+        document.head.append(m);
+      };
+      s.onerror = () => reject(new Error('CodeMirror unavailable'));
+      document.head.append(s);
+    });
+  }
+  return window.__bmCM;
+};
+
+function ensurePyodide() { return window.bmEnsurePyodide(); }
+
+function tryCodeMirror() {
+  window.bmEnsureCodeMirror().then(CM => {
+    document.querySelectorAll('textarea.code-editor').forEach(t => {
+      editors[t.dataset.item] = CM.fromTextArea(t,
+        { mode: 'python', lineNumbers: true, indentUnit: 4, viewportMargin: Infinity });
+    });
+  }).catch(() => {}); /* offline => silently keep the plain textarea */
+}
+
+function getCode(i) {
+  return editors[i] ? editors[i].getValue() : document.getElementById('code-src-' + i).value;
+}
+
+function renderCodeRun(box, item, i) {
+  const ta = el('textarea', { class: 'code-editor', id: 'code-src-' + i, 'data-item': i,
+    spellcheck: 'false' });
+  ta.value = item.starter_code || '';
+  box.append(ta);
+  const bar = el('div', { class: 'runbar' });
+  const run = el('button', { type: 'button', text: '▶ Run' });
+  bar.append(run, el('span', { class: 'hint', text: 'Run as often as you like — the last run counts.' }));
+  const out = el('div', { class: 'run-out', id: 'run-out-' + i, text: '' });
+  box.append(bar, out);
+  run.addEventListener('click', async () => {
+    out.classList.remove('fail');
+    out.textContent = 'Loading Python (first run downloads the runtime)…';
+    let lines = [], passed = false, err = null, tier = 0;
+    try {
+      const py = await ensurePyodide();
+      py.setStdout({ batched: t => lines.push(t) });
+      py.setStderr({ batched: t => lines.push(t) });
+      const ns = py.globals.get('dict')();
+      const msgs = [];
+      try {
+        await py.runPythonAsync(getCode(i), { globals: ns });
+        if (item.checks && item.checks.asserts) {
+          await py.runPythonAsync(item.checks.asserts, { globals: ns });
+          passed = true;
+        } else if (item.checks && item.checks.expected_output != null) {
+          passed = lines.join('\n').trim() === String(item.checks.expected_output).trim();
+        } else { passed = true; }
+        msgs.push(passed ? '✓ base checks passed' : '✗ base checks not passed yet');
+        if (passed && item.bonuses) {
+          for (const b of item.bonuses) {
+            try {
+              await py.runPythonAsync(b.asserts, { globals: ns });
+              tier++;
+              msgs.push('✓ Bonus ' + tier + (b.name ? ' — ' + b.name : ''));
+            } catch (e2) {
+              msgs.push('✗ Bonus ' + (tier + 1) + (b.name ? ' — ' + b.name : '') + ': ' +
+                String(e2.message || e2).trim().split('\n').pop());
+              break; /* tiers unlock sequentially */
+            }
+          }
+          if (tier === item.bonuses.length) msgs.push('★ all bonuses passed');
+        }
+      } catch (e) { err = String(e.message || e); }
+      if (ns.destroy) ns.destroy();
+    } catch (e) { err = String(e.message || e); }
+    const output = lines.join('\n');
+    out.textContent = (output ? output + '\n' : '') + (err ? '✗ ' + err : msgs.join('\n'));
+    out.classList.toggle('fail', !passed);
+    runState[i] = { passed, tier, output, code: getCode(i) };
+  });
+}
+
+/* ---------- diagram labeling: inline SVG + numbered marker dropdowns ------- */
+function renderDiagram(box, item, i) {
+  const holder = el('div', { class: 'diagram' });
+  holder.innerHTML = item.svg; /* agent-authored, trusted content */
+  box.append(holder);
+  const pool = [...new Set([...item.slots.map(s => s.correct), ...(item.extra_labels || [])])]
+    .sort(() => Math.random() - 0.5);
+  item.slots.forEach((slot, j) => {
+    const row = el('div', { class: 'match-row' });
+    row.append(el('div', { text: 'Marker ' + slot.marker }));
+    const sel = el('select', { id: `diag-${i}-${j}` });
+    sel.append(el('option', { value: '', text: '— choose —' }));
+    pool.forEach(l => sel.append(el('option', { value: l, text: l })));
+    row.append(sel);
+    box.append(row);
+  });
+}
+
+function renderMcq(box, item, i) {
+  item.options.forEach((opt, j) => {
+    const label = el('label', { class: 'opt' });
+    label.append(el('input', { type: 'radio', name: 'q' + i, value: j }));
+    label.append(el('span', { text: opt.text }));
+    box.append(label);
+  });
+}
+
+function renderFree(box, item, i) {
+  box.append(el('textarea', { id: 'free-' + i, placeholder: 'Your answer…' }));
+}
+
+function renderParsons(box, item, i) {
+  const ul = el('ul', { class: 'parsons', id: 'parsons-' + i });
+  const shuffled = item.lines.map((line, idx) => ({ line, idx }))
+    .sort(() => Math.random() - 0.5);
+  shuffled.forEach(({ line, idx }) => {
+    const li = el('li', { 'data-idx': idx });
+    li.append(el('span', { text: line }));
+    const movers = el('span', { class: 'movers' });
+    const up = el('button', { type: 'button', text: '↑', 'aria-label': 'move up' });
+    const down = el('button', { type: 'button', text: '↓', 'aria-label': 'move down' });
+    up.addEventListener('click', () => { if (li.previousElementSibling) ul.insertBefore(li, li.previousElementSibling); });
+    down.addEventListener('click', () => { if (li.nextElementSibling) ul.insertBefore(li.nextElementSibling, li); });
+    movers.append(up, down);
+    li.append(movers);
+    ul.append(li);
+  });
+  box.append(ul);
+}
+
+function renderMatching(box, item, i) {
+  const rights = item.pairs.map(p => p.right);
+  item.pairs.forEach((p, j) => {
+    const row = el('div', { class: 'match-row' });
+    row.append(el('div', { text: p.left }));
+    const sel = el('select', { id: `match-${i}-${j}` });
+    sel.append(el('option', { value: '', text: '— choose —' }));
+    [...rights].sort().forEach(r => sel.append(el('option', { value: r, text: r })));
+    row.append(sel);
+    box.append(row);
+  });
+}
+
+function tutorLink(code) {
+  return 'https://pythontutor.com/render.html#code=' + encodeURIComponent(code) +
+    '&cumulative=false&heapPrimitives=nevernest&mode=display&py=311&rawInputLstJSON=%5B%5D';
+}
+
+function addTutorLinks(box, item, r) {
+  if (!item.visualize) return;
+  const wrap = el('div', { class: 'tutor-links' });
+  if (item.type === 'code_run' && r.answer) {
+    const a = el('a', { href: tutorLink(r.answer), target: '_blank', rel: 'noopener',
+      text: '↗ Step through your code in Python Tutor' });
+    wrap.append(a);
+  } else if (item.code) {
+    wrap.append(el('a', { href: tutorLink(item.code), target: '_blank', rel: 'noopener',
+      text: '↗ Step through this code in Python Tutor' }));
+  }
+  if (wrap.childNodes.length) box.append(wrap);
+}
+
+function addReveal(box, item, r, i) {
+  const rev = el('div', { class: 'reveal' });
+  rev.append(el('div', { class: 'rlabel', text: 'Reveal' }));
+  if (item.type === 'mcq') {
+    rev.append(el('div', { text: 'Answer: ' + item.options.find(o => o.correct).text }));
+  } else if (item.type === 'parsons') {
+    rev.append(el('div', { text: 'Correct order:' }));
+    rev.append(el('pre', { text: item.lines.map((l, k) => (k + 1) + '. ' + l).join('\n') }));
+  } else if (item.type === 'matching') {
+    rev.append(el('pre', { text: item.pairs.map(p2 => p2.left + '  →  ' + p2.right).join('\n') }));
+  } else if (item.type === 'diagram_label') {
+    rev.append(el('pre', { text: item.slots.map(sl => 'Marker ' + sl.marker + '  →  ' + sl.correct).join('\n') }));
+  } else if (item.type === 'code_run' && (item.solutions || item.solution)) {
+    const sols = item.solutions || [{ code: item.solution }];
+    sols.forEach((sol, k) => {
+      rev.append(el('div', { class: 'rlabel',
+        text: sols.length > 1 ? 'Walkthrough ' + (k + 1) + ' of ' + sols.length : 'Reference solution' }));
+      if (sol.commentary) rev.append(el('div', { text: sol.commentary }));
+      rev.append(el('pre', { text: sol.code }));
+      if (item.visualize) {
+        rev.append(el('div', { class: 'tutor-links' },
+          el('a', { href: tutorLink(sol.code), target: '_blank', rel: 'noopener',
+            text: '↗ Step through in Python Tutor' })));
+      }
+    });
+  } else if (item.solution) {
+    rev.append(el('div', { class: 'rlabel', text: 'Reference solution' }));
+    rev.append(el('pre', { text: item.solution }));
+    if (item.visualize) {
+      rev.append(el('div', { class: 'tutor-links' },
+        el('a', { href: tutorLink(item.solution), target: '_blank', rel: 'noopener',
+          text: '↗ Step through in Python Tutor' })));
+    }
+  }
+  if (item.rubric) {
+    rev.append(el('div', { class: 'rlabel', text: 'Reference notes' }));
+    rev.append(el('div', { class: 'rubric-text', text: item.rubric }));
+  }
+  box.append(rev);
+  const refl = el('div', { class: 'reflect' });
+  refl.append(el('div', { class: 'rlabel', text: 'Reflection' }));
+  const ta = el('textarea', { id: 'refl-' + i,
+    placeholder: 'What did you learn? What surprised you? How did your approach differ from the reference?' });
+  ta.addEventListener('input', () => refreshExport());
+  refl.append(ta);
+  box.append(refl);
+}
+
+let graded = null;
+
+function refreshExport() {
+  if (!graded) return '';
+  graded.items.forEach(it => {
+    const ta = document.getElementById('refl-' + it.index);
+    it.reflection = ta && ta.value.trim() ? ta.value.trim() : null;
+  });
+  const overall = document.getElementById('refl-overall');
+  graded.overall_reflection = overall && overall.value.trim() ? overall.value.trim() : null;
+  const json = JSON.stringify(graded, null, 2);
+  document.getElementById('export-json').value = json;
+  return json;
+}
+
+let mech = 0, mechRight = 0, answeredCount = 0;
+const gradedFlags = {};
+
+function lockItem(box, i) {
+  box.querySelectorAll('input, select, button, textarea').forEach(n => { n.disabled = true; });
+  if (editors[i]) editors[i].setOption('readOnly', 'nocursor');
+}
+
+function gradeItem(data, i) {
+  if (gradedFlags[i]) return;
+  gradedFlags[i] = true;
+  const item = data.items[i];
+  const box = document.getElementById('item-' + i);
+  const r = { index: i, type: item.type, stem: item.stem };
+  lockItem(box, i); /* answer is committed: no revisions, reveal follows */
+  if (item.type === 'mcq') {
+    mech++;
+    const picked = document.querySelector(`input[name="q${i}"]:checked`);
+    const j = picked ? Number(picked.value) : null;
+    r.answer = j === null ? null : item.options[j].text;
+    r.correct = j !== null && !!item.options[j].correct;
+    const fb = el('div', { class: 'feedback ' + (r.correct ? 'right' : 'wrong') });
+    if (r.correct) { mechRight++; fb.textContent = '✓ Correct.'; }
+    else {
+      const mis = j !== null && item.options[j].misconception;
+      fb.textContent = '✗ ' + (mis ? mis : 'Not quite — your agent will follow up on this one.');
+      r.misconception = mis || null;
+    }
+    box.append(fb); box.classList.add(r.correct ? 'graded-right' : 'graded-wrong');
+  } else if (item.type === 'parsons') {
+    mech++;
+    const order = [...document.querySelectorAll(`#parsons-${i} li`)].map(li => Number(li.dataset.idx));
+    r.answer = order; r.correct = order.every((v, k) => v === k);
+    if (r.correct) mechRight++;
+    const fb = el('div', { class: 'feedback ' + (r.correct ? 'right' : 'wrong'),
+      text: r.correct ? '✓ Correct order.' : '✗ Order is off — compare with the reveal below.' });
+    box.append(fb); box.classList.add(r.correct ? 'graded-right' : 'graded-wrong');
+  } else if (item.type === 'matching') {
+    mech++;
+    r.answer = item.pairs.map((p2, j) => document.getElementById(`match-${i}-${j}`).value);
+    r.correct = item.pairs.every((p2, j) => r.answer[j] === p2.right);
+    if (r.correct) mechRight++;
+    const fb = el('div', { class: 'feedback ' + (r.correct ? 'right' : 'wrong'),
+      text: r.correct ? '✓ All matched.' : '✗ At least one mismatch.' });
+    box.append(fb); box.classList.add(r.correct ? 'graded-right' : 'graded-wrong');
+  } else if (item.type === 'code_run') {
+    mech++;
+    const st = runState[i];
+    r.answer = getCode(i);
+    r.output = st ? st.output : null;
+    r.tier = st ? (st.tier || 0) : 0;
+    r.correct = !!(st && st.passed && st.code === r.answer);
+    if (r.correct) mechRight++;
+    const fb = el('div', { class: 'feedback ' + (r.correct ? 'right' : 'wrong'),
+      text: r.correct ? '✓ Passing run recorded.' +
+          (item.bonuses ? ' Bonus tier ' + r.tier + '/' + item.bonuses.length + '.' : '')
+        : st ? '✗ Last run did not pass (or the code changed since) — your code goes to your agent.'
+             : '✗ Never run — your code goes to your agent.' });
+    box.append(fb); box.classList.add(r.correct ? 'graded-right' : 'graded-wrong');
+  } else if (item.type === 'diagram_label') {
+    mech++;
+    r.answer = item.slots.map((slot, j) => document.getElementById(`diag-${i}-${j}`).value);
+    r.correct = item.slots.every((slot, j) => r.answer[j] === slot.correct);
+    if (r.correct) mechRight++;
+    const fb = el('div', { class: 'feedback ' + (r.correct ? 'right' : 'wrong'),
+      text: r.correct ? '✓ All labels correct.' : '✗ At least one label is off.' });
+    box.append(fb); box.classList.add(r.correct ? 'graded-right' : 'graded-wrong');
+  } else {
+    r.answer = document.getElementById('free-' + i).value;
+    r.correct = null; /* agent-graded */
+  }
+  addTutorLinks(box, item, r);
+  addReveal(box, item, r, i);
+  graded.items.push(r);
+  graded.items.sort((a, b) => a.index - b.index);
+  answeredCount++;
+  refreshExport();
+  if (answeredCount === data.items.length) finish(data);
+}
+
+function finish(data) {
+  document.getElementById('score').textContent = mech
+    ? `Mechanically graded: ${mechRight}/${mech}. Free-text answers go to your agent.`
+    : 'All answers go to your agent for grading.';
+  if (data.key_points && data.key_points.length) {
+    const kp = document.getElementById('kp-list');
+    kp.replaceChildren(...data.key_points.map(p2 => el('li', { text: p2 })));
+    document.getElementById('keypoints').style.display = 'block';
+  }
+  document.getElementById('refl-overall').addEventListener('input', () => refreshExport());
+  refreshExport();
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('copy').onclick = () =>
+    navigator.clipboard && navigator.clipboard.writeText(refreshExport());
+  document.getElementById('download').onclick = () => {
+    const a = el('a', { href: URL.createObjectURL(new Blob([refreshExport()], { type: 'application/json' })),
+      download: (data.unit ? data.unit + '-' : '') + 'exam-results.json' });
+    a.click();
+  };
+  document.getElementById('keypoints').scrollIntoView({ behavior: 'smooth' });
+}
+</script>

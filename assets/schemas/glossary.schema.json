@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "book-mastery/glossary.schema.json",
+  "title": "Glossary (book-wide, cumulative)",
+  "type": "object",
+  "required": [
+    "entries"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "book": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "term",
+          "definition"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "term": {
+            "type": "string",
+            "minLength": 1
+          },
+          "definition": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Learner's own words where a reflection provided them; the author's otherwise."
+          },
+          "unit": {
+            "type": [
+              "string",
+              "number"
+            ]
+          },
+          "see_also": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 6,
+            "description": "Other terms in THIS glossary (exact term text). Cross-link near-confusables especially — the pairs a learner mixes up are the valuable links."
+          }
+        }
+      }
+    }
+  }
+}

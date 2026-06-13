@@ -1,0 +1,244 @@
+# Worked examples: one per question type.
+# READ THIS FILE BEFORE WRITING YOUR FIRST EXAM YAML FOR A BOOK.
+# The schema (assets/schemas/exam.schema.json) enforces structure; these
+# examples carry the craft the schema can't check. The comments explain WHY
+# each item is built the way it is — imitate the reasoning, not the topic.
+# (Examples use DDIA ch. 3; replace content with YOUR book's running examples.)
+# Items are submitted and revealed ONE AT A TIME: order them so no reveal
+# answers a later item — entangled items go first.
+
+title: SSTables and LSM-Trees
+book: Designing Data-Intensive Applications
+unit: "3.1.2"
+
+key_points:
+  - SSTables keep keys sorted, enabling mergesort-style compaction and sparse indexes.
+  - Writes go to an in-memory memtable; a flush produces an immutable on-disk segment.
+  - Reads check memtable first, then segments newest to oldest; bloom filters skip absent keys.
+
+items:
+  # ---- MCQ ------------------------------------------------------------
+  # Craft: the stem asks ONE thing and is answerable before reading options.
+  # Every distractor is a real wrong belief a learner of THIS unit could
+  # hold — not a joke, not an obviously-wrong filler. Each carries the
+  # misconception it detects: that text appears on a wrong pick and tells
+  # you exactly what to probe in the follow-up. Options are similar in
+  # length so the longest one doesn't telegraph the answer.
+  - type: mcq
+    objective: explain why sorted segments make compaction cheap
+    stem: What makes merging two SSTable segments efficient even when both are larger than memory?
+    options:
+      - text: Keys within each segment are sorted, so a sequential mergesort-style pass works.
+        correct: true
+      - text: Segments are kept small enough to load fully into memory.
+        misconception: Confuses the memtable (bounded, in-memory) with on-disk segments, which can be arbitrarily large.
+      - text: Each segment carries a complete index of every key it contains.
+        misconception: SSTables need only a SPARSE index — sorting is what makes a dense index unnecessary.
+      - text: The merge consults the write-ahead log to know which keys changed.
+        misconception: The WAL exists for crash recovery of the memtable; it plays no role in compaction.
+
+  # ---- Trace execution -------------------------------------------------
+  # Craft: tests the learner's notional machine on the unit's OWN mechanism.
+  # The code block sets up a concrete tiny scenario; the stem asks for the
+  # observable outcome. The rubric is the grading guide AND the 'reference notes'
+  # the page reveals after submission — write it for the learner's eyes too.
+  - type: trace
+    objective: trace how overwrites resolve across memtable and segments
+    stem: "After these operations, what does a read of key 'a' return, and which structures are consulted, in order?"
+    code: |
+      set(a, 1)
+      set(b, 2)
+      flush()          # memtable -> segment_0001
+      set(a, 3)
+      read(a)
+    rubric: |
+      Must say: returns 3; memtable is checked first and already contains a=3,
+      so segment_0001 is never consulted. Wrong-but-revealing answer: "returns 3
+      after checking both" — means they think reads always scan segments.
+
+  # ---- Trace backward ---------------------------------------------------
+  # Craft: inverse reasoning — give the END state, ask what produced it.
+  # Harder than forward tracing; use once the unit's mechanism is covered.
+  - type: trace_backward
+    objective: trace how overwrites resolve across memtable and segments
+    stem: "A read of key 'x' consulted three on-disk segments before returning a value. Give a minimal sequence of operations that produces this."
+    rubric: |
+      Any sequence works that: writes x early, flushes, then has 2+ flush cycles
+      WITHOUT touching x, then reads. Must show x absent from memtable and the
+      two newest segments. Bonus insight: a bloom filter would have skipped the
+      first two segments.
+
+  # ---- Parsons ----------------------------------------------------------
+  # Craft: tests structure/order without the burden of writing code.
+  # Lines go in CORRECT order here — the page shuffles. Lines must be
+  # unambiguous: exactly one valid ordering (if two orderings are defensible,
+  # the item is broken).
+  - type: parsons
+    objective: describe the read path of an LSM-tree
+    stem: Order the steps of a read in an LSM-tree (assume no bloom filters).
+    lines:
+      - check the memtable
+      - check the most recent on-disk segment
+      - check progressively older segments
+      - return not-found if no segment contains the key
+
+  # ---- Matching ---------------------------------------------------------
+  # Craft: discrimination between SIMILAR things the unit introduced
+  # together — the value is in near-confusable pairs. Don't match trivially
+  # different concepts; that tests nothing.
+  - type: matching
+    objective: distinguish the roles of LSM-tree components
+    stem: Match each structure to its role.
+    pairs:
+      - left: memtable
+        right: in-memory sorted buffer for recent writes
+      - left: SSTable segment
+        right: immutable sorted file produced by a flush
+      - left: sparse index
+        right: maps SOME keys to file offsets; sorting fills the gaps
+      - left: bloom filter
+        right: probabilistic proof that a key is absent
+
+  # ---- Cloze ------------------------------------------------------------
+  # Craft: take REAL code or a real sentence from the unit (or the user's
+  # own practice branch) and blank exactly one load-bearing element.
+  - type: cloze
+    objective: explain why writes are sequential
+    stem: "Fill the blank: an LSM-tree turns random-access writes into ______ disk I/O, because all writes go to the memtable and segments are written ______."
+    rubric: "sequential / append-only (accept 'in one pass', 'sequentially')."
+
+  # ---- Minimal fix ------------------------------------------------------
+  # Craft: exactly ONE bug, and the bug must be a conceptual error from this
+  # unit — not a typo. Finding it proves reading comprehension of the
+  # mechanism.
+  - type: minimal_fix
+    objective: describe the read path of an LSM-tree
+    stem: This pseudocode for an LSM-tree read has one conceptual bug. Name it and give the minimal fix.
+    code: |
+      def read(key):
+          for segment in segments_oldest_first():
+              if key in segment:
+                  return segment[key]
+          return memtable.get(key)
+    rubric: |
+      Two inversions count as one conceptual bug (wrong recency order): memtable
+      must be checked FIRST, and segments newest-first — otherwise stale values
+      win. Accept either phrasing; the fix is reversing the lookup order.
+
+  # ---- Summarization ----------------------------------------------------
+  # Craft: forces chunking. Constrain the length hard (one sentence) —
+  # the constraint is the exercise.
+  - type: summarization
+    objective: explain the LSM-tree write path
+    stem: In ONE sentence, explain why writes are fast in an LSM-tree.
+    rubric: |
+      Must connect: writes go to memory (memtable) + disk writes are
+      sequential/batched. Missing either half = incomplete.
+
+  # ---- Code & run (in-browser Python) ------------------------------------
+  # Craft: the spec lives in the STEM (the learner must know the target);
+  # checks live in `checks` (asserts preferred — output comparison is
+  # brittle). starter_code is never blank: stub at the interesting boundary.
+  # Runs via Pyodide in the page (internet needed on first run); the last
+  # passing run is what gets graded. Use for SMALL functions only — anything
+  # needing files, packages, or iteration belongs in a branch exercise.
+  # `visualize: true` adds post-submission Python Tutor links: the learner
+  # steps through THEIR OWN submitted code and each revealed solution.
+  # Only set visualize on genuinely runnable Python (never on pseudocode —
+  # the trace item above uses pseudocode, so it stays unvisualized).
+  # Morsels-style craft: show the function BEING USED in the stem (usage
+  # examples beat descriptions); `bonuses` are sequential tiers unlocked
+  # after base checks pass; `solutions` is a graduated walkthrough. In a
+  # BOOK unit like this one, graduate along the CONCEPT (naive -> the
+  # author's design); in a PREREQUISITE unit, graduate along IDIOM.
+  - type: code_run
+    visualize: true
+    objective: implement memtable lookup-with-fallback
+    stem: "Implement read(key): memtable first, then segments newest-first (the list is ordered oldest to newest). Return None if absent. Usage: read('a') -> 3, read('c') -> 7, read('z') -> None."
+    starter_code: |
+      memtable = {"a": 3}
+      segments = [{"a": 1, "b": 2}, {"c": 7}]   # oldest ... newest
+
+      def read(key):
+          # your code here
+          ...
+    checks:
+      asserts: |
+        assert read("a") == 3, "memtable must win over segments"
+        assert read("c") == 7, "must find keys in newer segments"
+        assert read("b") == 2, "must fall through to older segments"
+        assert read("z") is None, "absent keys return None"
+    bonuses:
+      - name: tombstones
+        asserts: |
+          # deletes are writes of a tombstone marker — exactly how the book does it
+          memtable["b"] = None
+          assert read("b") is None, "a tombstone in a newer layer must hide older values"
+    solutions:
+      - commentary: "The straightforward version: it works, and it already encodes the key idea — newer layers win."
+        code: |
+          memtable = {"a": 3}
+          segments = [{"a": 1, "b": 2}, {"c": 7}]   # oldest ... newest
+
+          def read(key):
+              if key in memtable:
+                  return memtable[key]
+              for segment in reversed(segments):    # newest first
+                  if key in segment:
+                      return segment[key]
+              return None
+      - commentary: "The author-shaped version: treat memtable and segments as ONE newest-first chain — this is the structure compaction and bloom filters will hook into, and tombstones fall out for free."
+        code: |
+          memtable = {"a": 3}
+          segments = [{"a": 1, "b": 2}, {"c": 7}]   # oldest ... newest
+
+          def layers():
+              yield memtable
+              yield from reversed(segments)
+
+          def read(key):
+              for layer in layers():
+                  if key in layer:
+                      return layer[key]      # may be None: a tombstone
+              return None
+    rubric: |
+      If not passing: the classic bug is iterating segments oldest-first
+      (returns a=1) — that's the same recency misconception as the
+      minimal_fix item; connect them in feedback.
+
+  # ---- Diagram labeling ---------------------------------------------------
+  # Craft: the SVG carries numbered markers at the parts to identify; the
+  # learner assigns labels from a pool. extra_labels are distractors and
+  # carry the same diagnostic duty as MCQ distractors — include the
+  # near-confusable thing (here: the WAL, which is adjacent but wrong).
+  # Keep the SVG simple: boxes, arrows, numbered circles. Generate it
+  # yourself; it ships inside the YAML.
+  - type: diagram_label
+    objective: distinguish the roles of LSM-tree components
+    stem: Label the numbered parts of this LSM-tree write path.
+    svg: |
+      <svg viewBox="0 0 460 170" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="12">
+        <rect x="20" y="60" width="100" height="40" fill="#e3f0eb" stroke="#0f6b54"/>
+        <text x="70" y="84" text-anchor="middle">write</text>
+        <rect x="180" y="40" width="110" height="40" fill="#fff" stroke="#1c1e21"/>
+        <circle cx="190" cy="36" r="10" fill="#0f6b54"/><text x="190" y="40" text-anchor="middle" fill="#fff">1</text>
+        <rect x="180" y="110" width="110" height="40" fill="#fff" stroke="#1c1e21"/>
+        <circle cx="190" cy="106" r="10" fill="#0f6b54"/><text x="190" y="110" text-anchor="middle" fill="#fff">2</text>
+        <rect x="340" y="40" width="100" height="40" fill="#fff" stroke="#1c1e21"/>
+        <circle cx="350" cy="36" r="10" fill="#0f6b54"/><text x="350" y="40" text-anchor="middle" fill="#fff">3</text>
+        <path d="M120 80 L180 60" stroke="#1c1e21" marker-end="url(#a)"/>
+        <path d="M120 80 L180 130" stroke="#1c1e21"/>
+        <path d="M290 60 L340 60" stroke="#1c1e21"/>
+        <text x="305" y="52" font-size="10">flush</text>
+        <defs><marker id="a" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z"/></marker></defs>
+      </svg>
+    slots:
+      - marker: 1
+        correct: memtable
+      - marker: 2
+        correct: write-ahead log
+      - marker: 3
+        correct: SSTable segment
+    extra_labels:
+      - bloom filter
+      - sparse index

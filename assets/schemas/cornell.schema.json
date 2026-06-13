@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "book-mastery/cornell.schema.json",
+  "title": "Cornell notes (per chapter)",
+  "type": "object",
+  "required": [
+    "title",
+    "chapter"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "book": {
+      "type": "string"
+    },
+    "chapter": {
+      "type": [
+        "string",
+        "integer"
+      ]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "date": {
+      "type": "string"
+    },
+    "cues": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Question-form prompts from the learner's reflections and missed-then-recovered exam items."
+    },
+    "notes": {
+      "type": "array",
+      "maxItems": 14,
+      "items": {
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "heading": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "description": "The chapter condensed; the learner's vocabulary where reflections supplied it."
+    },
+    "summary": {
+      "type": "string",
+      "description": "The LEARNER'S chapter summary, lightly edited at most."
+    }
+  }
+}
