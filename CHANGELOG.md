@@ -1,10 +1,25 @@
 # book-mastery — template & workflow changelog
 
 Changes to the **shared skill** (templates in `assets/`, scripts in `scripts/`, and cross-book workflow
-conventions) — distinct from any single book's `study/NOTES.md`. Newest first. Each entry: what / why /
+conventions) — distinct from any single book's `NOTES.md`. Newest first. Each entry: what / why /
 where / how verified.
 
 ## 2026-06-19
+
+### Workflow — repo root *is* the study workspace (dropped the `study/` subdir)
+- **What:** with one repo per book, the separate `study/` working directory was a vestige of the old
+  three-repo design. The workspace files (`BOOK.md`, `NOTES.md`, `GAPS.md`, `index.html`, `exams/`,
+  `cards/`, `log/`, `reviews/`, `sessions/`, `artifacts/`, `explanations/`) now live at the **repo root**;
+  `practice/` and `project/` are subdirectories of it. The skill's working directory is the repo root.
+- **Why:** in a single repo, a `study/` layer added a `cd` and `../practice` / `../project` indirection for
+  no benefit. Repo-root-as-workspace is the natural single-repo shape and removes all `../` references.
+- **Where:** `SKILL.md` (intro "current directory" line, Workspace state `../practice`→`practice` /
+  `../project`→`project`, Git-layout diagram + item 1, Practice mechanics, session-end commit now plain
+  `git add -A` from the root); `README.md` install paths (`<book>/study/.claude` → `<book>/.claude`) and
+  layout descriptions. A consolidated single root `.gitignore` replaces the per-subdir ones.
+- **Verified:** the existing book repo was flattened with `mv study/* .` (git detected pure renames, history
+  intact); the static server now serves the repo root (dashboard at `/`, `BOOK.md`, `sessions/`, `practice/`
+  all 200, and the learner's existing URLs still resolve since those paths moved to where the server roots).
 
 ### Workflow — one git repo per book (was: three sibling repos)
 - **What:** the Git-layout model changed from three side-by-side repos (`study/`, `practice/`, `project/`)

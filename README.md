@@ -23,10 +23,10 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 Per-project (recommended — keep the skill next to the book you're studying):
 
 ```bash
-mkdir -p <book>/study/.claude/skills
-unzip book-mastery.skill -d <book>/study/.claude/skills/
+mkdir -p <book>/.claude/skills
+unzip book-mastery.skill -d <book>/.claude/skills/
 # or, from the unzipped folder:
-cp -r book-mastery <book>/study/.claude/skills/
+cp -r book-mastery <book>/.claude/skills/
 ```
 
 Or globally, to use it across all projects:
@@ -36,7 +36,7 @@ mkdir -p ~/.claude/skills
 cp -r book-mastery ~/.claude/skills/
 ```
 
-Then start Claude Code in the `<book>/` folder (the single repo holding the `study/`, `practice/`, and `project/` directories) and say: *"Use the book-mastery skill to work through &lt;book title&gt;."*
+Then start Claude Code in the `<book>/` folder (the single repo — its root is the study workspace, with `practice/` and `project/` as subdirectories) and say: *"Use the book-mastery skill to work through &lt;book title&gt;."*
 
 ### Claude apps (claude.ai, desktop, mobile)
 
@@ -47,8 +47,8 @@ Settings → Capabilities → Skills → upload `book-mastery.skill`. Note: the 
 Per-project:
 
 ```bash
-mkdir -p <book>/study/.agents/skills
-cp -r book-mastery <book>/study/.agents/skills/
+mkdir -p <book>/.agents/skills
+cp -r book-mastery <book>/.agents/skills/
 ```
 
 Or globally:
@@ -66,7 +66,7 @@ Any agent that follows the SKILL.md convention (Gemini CLI, and others) can use 
 
 ### First run
 
-Have the book's table of contents handy (a file, a link, or the book itself). On first invocation the skill parses the TOC, sets up the single book repo (with `study/`, `practice/`, and `project/` directories), runs a quick diagnostic for any prerequisites the author assumes, and begins the first unit. Commit the book repo at the end of each session — that history is your learning timeline.
+Have the book's table of contents handy (a file, a link, or the book itself). On first invocation the skill parses the TOC, sets up the single book repo (the repo root as the study workspace, with `practice/` and `project/` subdirectories), runs a quick diagnostic for any prerequisites the author assumes, and begins the first unit. Commit the book repo at the end of each session — that history is your learning timeline.
 
 ## What it does
 
