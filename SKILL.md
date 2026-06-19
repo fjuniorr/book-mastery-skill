@@ -106,6 +106,8 @@ Built pages include a collapsible **Python scratchpad** (right-hand panel, persi
 ### 3. Practice (a directory under `practice/`)
 Application, **aimed by the exam**: shape the exercise so it exercises what round 1 just exposed (a missed recency-order trace becomes the thing the tests probe hardest). A fully passed round 1 does not skip practice — recall is not capability.
 
+**Coding practice is for units the book teaches with code, scoped to what's covered.** A *purely conceptual* unit (e.g. an "introduction to / what is X?" unit with no code in the book yet) legitimately gets **no coding exercise** — its conceptual exam items and flashcards are the work; don't manufacture a prose "exercise" to fill the gap (the learner doesn't yet have the material to code against). When a unit *does* introduce code, the exercise is requirements-driven and scoped to actively-covered units, and it feeds the incrementally-accreting capstone (see [references/project.md](references/project.md)).
+
 Exercise sourcing is **book-first**:
 1. Use the book's explicit exercises when they exist for this unit.
 2. Mine the narrative for implicit exercises: "left to the reader," incremental builds (run predict-then-compare: the user attempts the next step before reading it, then diffs against the author's version — only when derivable from verified material), worked examples the user can re-derive.
