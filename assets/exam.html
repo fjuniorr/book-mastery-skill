@@ -27,8 +27,20 @@
   .qnum { font: 700 0.72rem/1 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.14em;
     text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
   .stem { font-weight: 600; margin-bottom: 0.75rem; }
+  .stem pre { margin: 0.6rem 0 0.2rem; font-weight: 400; }
+  /* inline code chip (markdown `code` in stems); pre uses highlight spans, not <code>, so this won't touch it */
+  code { font: 0.85em/1.4 'SF Mono', 'Fira Code', Consolas, monospace; background: #ecebe2;
+    border: 1px solid var(--line); border-radius: 4px; padding: 0.04rem 0.32rem; font-weight: 400; }
   pre { background: var(--code-bg); color: var(--code-ink); padding: 0.9rem 1rem; border-radius: 6px;
     overflow-x: auto; font: 0.85rem/1.55 'SF Mono', 'Fira Code', Consolas, monospace; }
+  /* self-contained Python syntax highlighting for read-only code blocks (works offline) */
+  pre .hl-comment  { color: #7d8c83; font-style: italic; }
+  pre .hl-string   { color: #e0a36b; }
+  pre .hl-keyword  { color: #c98fd6; }
+  pre .hl-builtin  { color: #6fb6cc; }
+  pre .hl-number   { color: #d98f6b; }
+  pre .hl-decorator{ color: #d8c779; }
+  pre .hl-def      { color: #86c986; }
   .opt { display: flex; gap: 0.6rem; align-items: baseline; padding: 0.45rem 0.6rem;
     border-radius: 6px; cursor: pointer; }
   .opt:hover { background: var(--accent-soft); }
@@ -118,12 +130,10 @@
 <script>
 /* The build script replaces the null below with the exam data as JSON. */
 const DATA = /*__DATA_JSON__*/null;
-
-if (!DATA) {
-  document.getElementById('title').textContent = 'Template not built';
-  document.getElementById('subtitle').textContent =
-    'Run scripts/build_page.py with an exam YAML file to generate a session page.';
-} else { render(DATA); }
+/* Bootstrap runs at the END of this script (see bottom), so that all
+   top-level `let`/`const` state (graded, mech, gradedFlags, editors, …) is
+   initialized before render() touches it — otherwise render() hits those
+   bindings in their temporal dead zone and the whole script aborts. */
 
 function el(tag, attrs = {}, ...children) {
   const e = document.createElement(tag);
@@ -134,6 +144,56 @@ function el(tag, attrs = {}, ...children) {
   return e;
 }
 
+/* ---------- minimal self-contained Python highlighter (no CDN; offline-safe) ---------- */
+const PY_KW = /^(?:def|class|return|if|elif|else|for|while|in|not|and|or|is|None|True|False|import|from|as|with|try|except|finally|raise|yield|lambda|assert|pass|break|continue|global|nonlocal|del|async|await|self|cls)$/;
+const PY_BUILTIN = /^(?:print|len|range|set|dict|list|tuple|int|str|float|bool|hash|sorted|reversed|enumerate|zip|isinstance|issubclass|super|property|staticmethod|classmethod|frozenset|next|iter|abs|min|max|sum|map|filter|type|object|Exception|getattr|setattr|hasattr|repr|format)$/;
+function escHtml(s) { return s.replace(/[&<>]/g, c => c === '&' ? '&amp;' : c === '<' ? '&lt;' : '&gt;'); }
+function highlightPy(src) {
+  let i = 0, out = '', expectName = false;
+  const push = (cls, txt) => { out += cls ? `<span class="hl-${cls}">${escHtml(txt)}</span>` : escHtml(txt); };
+  while (i < src.length) {
+    const rest = src.slice(i), c = src[i];
+    if (c === '#') { let j = src.indexOf('\n', i); if (j < 0) j = src.length; push('comment', src.slice(i, j)); i = j; continue; }
+    const sm = /^[rbfuRBFU]{0,2}('''[\s\S]*?'''|"""[\s\S]*?"""|'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*")/.exec(rest);
+    if (sm) { push('string', sm[0]); i += sm[0].length; continue; }
+    if (c === '@') { const dm = /^@[A-Za-z_][\w.]*/.exec(rest); if (dm) { push('decorator', dm[0]); i += dm[0].length; continue; } }
+    if (c >= '0' && c <= '9') { const nm = /^\d[\d_]*\.?\d*(?:[eE][-+]?\d+)?/.exec(rest); if (nm) { push('number', nm[0]); i += nm[0].length; continue; } }
+    const wm = /^[A-Za-z_]\w*/.exec(rest);
+    if (wm) {
+      const w = wm[0];
+      if (expectName) { push('def', w); expectName = false; }
+      else if (PY_KW.test(w)) { push('keyword', w); if (w === 'def' || w === 'class') expectName = true; }
+      else if (PY_BUILTIN.test(w)) push('builtin', w);
+      else push(null, w);
+      i += w.length; continue;
+    }
+    push(null, c); i++;
+  }
+  return out;
+}
+function codePre(code) { const p = el('pre'); p.innerHTML = highlightPy(code); return p; }
+
+/* ---------- tiny inline markdown for stems: fenced code, `inline code`, **bold**, *italic* ---------- */
+function inlineMd(s) {
+  let h = escHtml(s);
+  h = h.replace(/`([^`]+)`/g, (_, c) => '<code>' + c + '</code>');   /* c is already escaped */
+  h = h.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  h = h.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+  h = h.replace(/\n/g, '<br>');
+  return h;
+}
+function renderMd(container, text) {
+  /* split on ``` fences; odd segments are code blocks (optional language on the first line) */
+  text.split('```').forEach((part, idx) => {
+    if (idx % 2 === 1) {
+      const code = part.replace(/^[A-Za-z0-9_+-]*[ \t]*\n/, '').replace(/\n$/, '');
+      container.append(codePre(code));
+    } else if (part) {
+      const span = el('span'); span.innerHTML = inlineMd(part); container.append(span);
+    }
+  });
+}
+
 function render(data) {
   document.getElementById('title').textContent = data.title || 'Exam';
   document.getElementById('subtitle').textContent =
@@ -142,8 +202,10 @@ function render(data) {
   data.items.forEach((item, i) => {
     const box = el('div', { class: 'item', id: 'item-' + i });
     box.append(el('div', { class: 'qnum', text: `Question ${i + 1} · ${item.type}` }));
-    box.append(el('div', { class: 'stem', text: item.stem }));
-    if (item.code) box.append(el('pre', { text: item.code }));
+    const stem = el('div', { class: 'stem' });
+    renderMd(stem, item.stem || '');
+    box.append(stem);
+    if (item.code) box.append(codePre(item.code));
     if (item.type === 'mcq') renderMcq(box, item, i);
     else if (item.type === 'parsons') renderParsons(box, item, i);
     else if (item.type === 'matching') renderMatching(box, item, i);
@@ -368,7 +430,7 @@ function addReveal(box, item, r, i) {
       rev.append(el('div', { class: 'rlabel',
         text: sols.length > 1 ? 'Walkthrough ' + (k + 1) + ' of ' + sols.length : 'Reference solution' }));
       if (sol.commentary) rev.append(el('div', { text: sol.commentary }));
-      rev.append(el('pre', { text: sol.code }));
+      rev.append(codePre(sol.code));
       if (item.visualize) {
         rev.append(el('div', { class: 'tutor-links' },
           el('a', { href: tutorLink(sol.code), target: '_blank', rel: 'noopener',
@@ -377,7 +439,7 @@ function addReveal(box, item, r, i) {
     });
   } else if (item.solution) {
     rev.append(el('div', { class: 'rlabel', text: 'Reference solution' }));
-    rev.append(el('pre', { text: item.solution }));
+    rev.append(codePre(item.solution));
     if (item.visualize) {
       rev.append(el('div', { class: 'tutor-links' },
         el('a', { href: tutorLink(item.solution), target: '_blank', rel: 'noopener',
@@ -514,4 +576,11 @@ function finish(data) {
   };
   document.getElementById('keypoints').scrollIntoView({ behavior: 'smooth' });
 }
+
+/* ---------- bootstrap (must be last: all top-level state is now initialized) ---------- */
+if (!DATA) {
+  document.getElementById('title').textContent = 'Template not built';
+  document.getElementById('subtitle').textContent =
+    'Run scripts/build_page.py with an exam YAML file to generate a session page.';
+} else { render(DATA); }
 </script>
