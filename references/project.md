@@ -18,8 +18,8 @@ One project per book, spanning the whole reading. Exercises verify understanding
 
 ## Mechanics
 
-- The project lives in its own repo under `project/` — not a branch. It is long-lived.
-- Milestones are tags or PRs. `project/PLAN.md` tracks the milestone map and status.
+- The project lives under `project/` in the book's single repo (a top-level directory, not a branch). It is long-lived; if published later, split it out with `git subtree split` / `git filter-repo`.
+- Milestones are tags or commits. `project/PLAN.md` tracks the milestone map and status.
 - Review each milestone like a senior engineer reviewing real work: architecture, tradeoffs, tests, readability — not like grading homework. Request changes when warranted; the milestone is accepted only when it would pass a real review.
 - After acceptance, the user explains their solution conversationally (Launch School's live-assessment idea): what they built, why this way, what they'd do differently. Probe one design decision.
 

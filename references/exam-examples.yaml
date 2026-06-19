@@ -101,7 +101,7 @@ items:
 
   # ---- Cloze ------------------------------------------------------------
   # Craft: take REAL code or a real sentence from the unit (or the user's
-  # own practice branch) and blank exactly one load-bearing element.
+  # own practice exercise) and blank exactly one load-bearing element.
   - type: cloze
     objective: explain why writes are sequential
     stem: "Fill the blank: an LSM-tree turns random-access writes into ______ disk I/O, because all writes go to the memtable and segments are written ______."
@@ -141,7 +141,7 @@ items:
   # brittle). starter_code is never blank: stub at the interesting boundary.
   # Runs via Pyodide in the page (internet needed on first run); the last
   # passing run is what gets graded. Use for SMALL functions only — anything
-  # needing files, packages, or iteration belongs in a branch exercise.
+  # needing files, packages, or iteration belongs in a code exercise.
   # `visualize: true` adds post-submission Python Tutor links: the learner
   # steps through THEIR OWN submitted code and each revealed solution.
   # Only set visualize on genuinely runnable Python (never on pseudocode —

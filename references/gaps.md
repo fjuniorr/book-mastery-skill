@@ -57,7 +57,7 @@ this about the unit, or about something beneath it?**
 Signals of a gap *beneath* the unit:
 - The recorded MCQ `misconception` names a concept from an earlier unit or
   from outside the book (that's why distractors carry misconceptions).
-- Practice branches fail on mechanics unrelated to the unit's concept (e.g.
+- Practice exercises fail on mechanics unrelated to the unit's concept (e.g.
   fighting Python generators while learning LSM-trees).
 - Cards from one underlying concept keep lapsing across multiple units
   (`state.py stats` surfaces these).
@@ -107,7 +107,7 @@ One registry at the workspace root; newest first. Every gap also appends a
 
 ## G3: Python generators (prerequisite) — closing
 - detected: 2026-06-14, during 3.1.2 r1
-- evidence: practice branch ex/3.1.2 failed on yield semantics (not on
+- evidence: practice exercise 3.1.2 failed on yield semantics (not on
   LSM logic); card-0031 and card-0044 lapsing; r1 trace miss attributed
   to iteration order, not compaction
 - remediation: inserted P-1 "Generators and lazy iteration" before 3.2

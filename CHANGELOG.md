@@ -4,6 +4,30 @@ Changes to the **shared skill** (templates in `assets/`, scripts in `scripts/`, 
 conventions) — distinct from any single book's `study/NOTES.md`. Newest first. Each entry: what / why /
 where / how verified.
 
+## 2026-06-19
+
+### Workflow — one git repo per book (was: three sibling repos)
+- **What:** the Git-layout model changed from three side-by-side repos (`study/`, `practice/`, `project/`)
+  to **a single repo per book** with those three as plain top-level directories. History is linear on
+  `main` for all three concerns together.
+- **Why:** three repos meant three remotes to clone/push, which made moving a book between computers
+  painful. One repo = one clone, one remote.
+- **Practice mechanics redesigned:** exercises are no longer git branches (`ex/<unit>-<topic>`) — a branch
+  checkout in a shared repo would also revert `study/` and `project/`. Each exercise is now its **own
+  directory** under `practice/exercises/<unit>-<topic>/`: scaffold committed first, learner edits in place
+  and commits (the submission), review via `git log -p -- practice/exercises/<unit>-<topic>/`. The book's
+  canonical running code lives in `practice/src/` and advances linearly. Predict-then-compare is still one
+  `git diff` apart (learner's commit vs. the author's version).
+- **Where:** `SKILL.md` (Workspace state, Git layout, Practice step, Delivery-mode rule, description);
+  `scripts/state.py` (`practice --branch` → `--dir`, event field `branch` → `dir`); `references/`
+  (`project.md`, `exercise-types.md` Mode column + scaffold checklist, `gaps.md`, `explanations.md`,
+  `exam-examples.yaml` comments); `README.md`.
+- **Verified:** `state.py practice <unit> --dir … --result …` writes a `dir` event and `stats` renders it;
+  old `--branch` is now rejected. The existing book repo (`/home/exedev/book`) was consolidated from three
+  repos into one via `git subtree add` (all three histories preserved natively under their prefixes;
+  content byte-identical; clean tree). Note: the per-book consolidation steps are recorded in that book's
+  `study/NOTES.md`, not here — this entry covers only the portable skill change.
+
 ## 2026-06-13
 
 ### Template — `assets/exam.html`: markdown rendering in item stems

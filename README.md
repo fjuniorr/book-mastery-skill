@@ -36,7 +36,7 @@ mkdir -p ~/.claude/skills
 cp -r book-mastery ~/.claude/skills/
 ```
 
-Then start Claude Code in the parent `<book>/` folder (so all three sibling repos — `study/`, `practice/`, `project/` — are reachable) and say: *"Use the book-mastery skill to work through &lt;book title&gt;."*
+Then start Claude Code in the `<book>/` folder (the single repo holding the `study/`, `practice/`, and `project/` directories) and say: *"Use the book-mastery skill to work through &lt;book title&gt;."*
 
 ### Claude apps (claude.ai, desktop, mobile)
 
@@ -66,7 +66,7 @@ Any agent that follows the SKILL.md convention (Gemini CLI, and others) can use 
 
 ### First run
 
-Have the book's table of contents handy (a file, a link, or the book itself). On first invocation the skill parses the TOC, sets up the three sibling git repos, runs a quick diagnostic for any prerequisites the author assumes, and begins the first unit. Commit the `study/` repo at the end of each session — that history is your learning timeline.
+Have the book's table of contents handy (a file, a link, or the book itself). On first invocation the skill parses the TOC, sets up the single book repo (with `study/`, `practice/`, and `project/` directories), runs a quick diagnostic for any prerequisites the author assumes, and begins the first unit. Commit the book repo at the end of each session — that history is your learning timeline.
 
 ## What it does
 

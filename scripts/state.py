@@ -169,10 +169,10 @@ def cmd_skip(root: Path, unit: str, reason: str | None) -> None:
                           "type": "skip", "unit": unit, "reason": reason}])
 
 
-def cmd_practice(root: Path, unit: str, branch: str, result: str) -> None:
+def cmd_practice(root: Path, unit: str, dir_: str, result: str) -> None:
     """Record an exercise outcome so stats sees the full picture."""
     append_events(root, [{"ts": datetime.now().isoformat(timespec="seconds"),
-                          "type": "practice", "unit": unit, "branch": branch,
+                          "type": "practice", "unit": unit, "dir": dir_,
                           "result": result}])
 
 
@@ -195,7 +195,7 @@ def cmd_stats(root: Path) -> None:
     if practices:
         print("# Practice")
         for e in practices:
-            print(f"  {e['unit']} {e['branch']}: {e['result']}")
+            print(f"  {e['unit']} {e.get('dir', e.get('branch', '?'))}: {e['result']}")
     skips = [e for e in events if e.get("type") == "skip"]
     if skips:
         print("# Skipped (by choice — informational, not remedial)")
@@ -224,7 +224,8 @@ def main() -> None:
     g.add_argument("correct", choices=["true", "false"])
     g.add_argument("--round", type=int, default=1)
     pr = sub.add_parser("practice"); pr.add_argument("unit")
-    pr.add_argument("--branch", required=True)
+    pr.add_argument("--dir", dest="dir_", required=True,
+                    help="exercise directory, relative to practice/ (e.g. exercises/1.2-language)")
     pr.add_argument("--result", required=True, choices=["passed", "revised", "abandoned"])
     sk = sub.add_parser("skip"); sk.add_argument("unit")
     sk.add_argument("--reason", default=None)
@@ -234,7 +235,7 @@ def main() -> None:
     elif a.cmd == "import-review": cmd_import_review(a.root, a.results)
     elif a.cmd == "import-exam": cmd_import_exam(a.root, a.results)
     elif a.cmd == "grade": cmd_grade(a.root, a.unit, a.item, a.correct == "true", a.round)
-    elif a.cmd == "practice": cmd_practice(a.root, a.unit, a.branch, a.result)
+    elif a.cmd == "practice": cmd_practice(a.root, a.unit, a.dir_, a.result)
     elif a.cmd == "skip": cmd_skip(a.root, a.unit, a.reason)
     elif a.cmd == "stats": cmd_stats(a.root)
 

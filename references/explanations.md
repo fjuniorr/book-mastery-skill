@@ -52,7 +52,7 @@ already owned by other steps:
   of it. If you find yourself paraphrasing the unit's content, stop; that's
   their job.
 - **Not a tutorial or how-to.** The moment it becomes "do this, then this,"
-  it's an exercise — route it to Practice (a branch or form), not an
+  it's an exercise — route it to Practice (a code exercise or form), not an
   explanation. Explanation does not give steps to follow.
 - **Not reference.** Don't dump the API table, the full signature list, the
   config keys. Point to where the reference lives (the book, the docs, the

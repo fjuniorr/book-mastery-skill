@@ -1,6 +1,6 @@
 ---
 name: book-mastery
-description: Guide the user through fully mastering a technical book — not just reading it — via a structured loop of reading, scaffolded practice in git branches, formative exams, spaced-repetition flashcards, and a book-spanning capstone project. Use this skill whenever the user wants to read, study, learn from, work through, or "master" a book, mentions starting a new technical book, asks to continue their book study sessions, asks for exercises, exams, or flashcards related to a book they are reading, or asks for an explanation of a concept or prerequisite from a book they are studying.
+description: Guide the user through fully mastering a technical book — not just reading it — via a structured loop of reading, scaffolded hands-on practice exercises, formative exams, spaced-repetition flashcards, and a book-spanning capstone project. Use this skill whenever the user wants to read, study, learn from, work through, or "master" a book, mentions starting a new technical book, asks to continue their book study sessions, asks for exercises, exams, or flashcards related to a book they are reading, or asks for an explanation of a concept or prerequisite from a book they are studying.
 ---
 
 # Book Mastery
@@ -19,8 +19,8 @@ This is a stateful, multi-session workflow. Treat the current directory as a stu
 - `log/events.jsonl` — append-only event log: every review rating, exam outcome, and grading verdict, one JSON line each. **Never rewrite or edit this file — only append**, and prefer appending via `scripts/state.py` import commands. All scheduling arithmetic and progress state is *derived* from this log by script; you never compute intervals or due dates yourself.
 - `reviews/` — the due-card YAML generated at each session start (by `state.py due`).
 - `sessions/` — built HTML pages, generated from YAML by `scripts/build_page.py`. Never hand-write these.
-- `../practice/` — a **sibling git repo** for exercises (see Git layout below): branch per exercise, `main` holds the book's canonical running code.
-- `../project/` — the capstone, also a **sibling repo** — standalone and publishable. Design rules: [references/project.md](references/project.md).
+- `../practice/` — a **sibling directory in the same repo** for exercises (see Git layout below): one directory per exercise under `practice/exercises/`, with `practice/src/` holding the book's canonical running code.
+- `../project/` — the capstone, also a **sibling directory in the same repo**. Design rules: [references/project.md](references/project.md).
 - `explanations/` — discursive Markdown explanations the learner asks for, authored in the Diátaxis *explanation* mode (understanding, not instruction). On-demand and cross-linked to the glossary and maps; prose needs no build step. Mechanics: [references/explanations.md](references/explanations.md).
 - `GAPS.md` — registry of detected gaps in the learner's background, their evidence, and the inserted units closing them. Format and mechanics: [references/gaps.md](references/gaps.md).
 - `NOTES.md` — working notes: observed pace calibration, volunteered preferences, things to avoid. Observations and things the learner says unprompted — never interview material.
@@ -50,22 +50,24 @@ If the workspace is empty, run **Setup**. Otherwise, read `BOOK.md` and `NOTES.m
 
 Setup asks the learner **nothing**. Pace and session length are observed, not asked: `log/events.jsonl` timestamps show how many units real sessions cover and how long they run — note the observed calibration in `NOTES.md` as it emerges and plan sessions from it. A session ends when the learner ends it.
 
-## Git layout — three sibling repos, three kinds of history
+## Git layout — one repo per book, one linear history
 
-No nesting, no submodules, no `.gitignore` tricks — three plain repos side by side under one parent folder:
+**One plain git repo per book**, rooted at the book folder — one clone, one remote, trivial to move between machines. No nested repos, no submodules. Three top-level directories organize the work; they are plain folders, *not* separate repos:
 
 ```
-<book>/
-├── study/      the workspace repo (this skill's working directory)
-├── practice/   the exercise repo
-└── project/    the capstone repo
+<book>/                ← the single git repo (one remote)
+├── study/    the workspace (this skill's working directory): all text state above
+├── practice/ exercises + the book's canonical running code
+└── project/  the capstone
 ```
 
-1. **`study/`** — all text state above. Linear, `main` only; its history is the learning timeline.
-2. **`practice/`** — `main` holds the **book's canonical running code**, advancing as the book builds it. Each exercise is a branch off main's tip (`ex/<unit>-<topic>`), scaffold as the initial commit, the learner's commit as the submission, revisions as follow-up commits. After an exercise completes, **main adopts the author's canonical version — never the learner's solution** — so later exercises and faded scaffolds build on canon while the attempt stays archived on its branch. Predict-then-compare is the learner's commit vs. the author's commit, one `git diff` apart.
-3. **`project/`** — own history, milestones as tags or PRs (tracked in its `PLAN.md`), deliberately separable — it may end up published.
+History is **linear on `main`** — it is the whole learning timeline: text state, practice, and capstone advancing together.
 
-**Session-end commit (always, in the workspace repo):** after importing results and updating state, commit the workspace with a message that names what happened, e.g. `git add -A && git commit -m "session: 3.1.2 r1 failed -> practice ex/3.1.2-lsm-read; 6 cards; G3 opened"`. One commit per session; never leave a session uncommitted. Initialize all three sibling repos at Setup.
+1. **`study/`** — all text state above.
+2. **`practice/`** — `practice/src/` (or the book's own layout) holds the **book's canonical running code**, advancing as the book builds it. Each exercise is its **own directory**, `practice/exercises/<unit>-<topic>/`: the scaffold committed first (stubs, tests, README), the learner's edits-in-place committed as the submission, revisions as follow-up commits. Review with `git log -p -- practice/exercises/<unit>-<topic>/`. After an exercise completes, **`practice/src/` adopts the author's canonical version — never the learner's solution** — so later exercises and faded scaffolds build on canon while the attempt stays archived in its directory's history. Predict-then-compare is the learner's commit vs. the author's version, one `git diff` apart. (No per-exercise branches: a branch checkout would also revert `study/` and `project/` — directories keep the three concerns independent within one linear history.)
+3. **`project/`** — lives under `project/`; milestones are tags or commits tracked in `project/PLAN.md`. Kept in-repo so a single clone carries the whole book; if it's ever published, split it out then (`git subtree split` / `git filter-repo`).
+
+**Session-end commit (always):** after importing results and updating state, commit the **book repo from its root** with a message that names what happened, e.g. `git -C <book> add -A && git -C <book> commit -m "session: 3.1.2 r1 failed -> practice exercises/3.1.2-lsm-read; 6 cards; G3 opened"` (from the `study/` working dir, `<book>` is `..`). One commit per session covering study + practice + project together; never leave a session uncommitted. Initialize the single repo at Setup.
 
 ## Session structure
 
@@ -97,7 +99,7 @@ Book closed, taken **right after reading**: round 1 is a pure retrieval measurem
 
 Built pages include a collapsible **Python scratchpad** (right-hand panel, persistent across browser restarts, runs in-browser, never logged). The closed-book rule is: the book and notes stay closed, but anything the learner can discover by executing code they retrieve from memory is fair game — that's how professionals work. Don't design items that are defeated by trivial scratchpad probing; design items where the probe itself requires understanding. The page self-grades mechanical items and shows each MCQ distractor's misconception on a wrong pick; free-text items come back to you for grading. Formative, not summative: follow up Socratically on each miss before moving to practice.
 
-### 3. Practice (branch in the practice repo)
+### 3. Practice (a directory under `practice/`)
 Application, **aimed by the exam**: shape the exercise so it exercises what round 1 just exposed (a missed recency-order trace becomes the thing the tests probe hardest). A fully passed round 1 does not skip practice — recall is not capability.
 
 Exercise sourcing is **book-first**:
@@ -105,7 +107,7 @@ Exercise sourcing is **book-first**:
 2. Mine the narrative for implicit exercises: "left to the reader," incremental builds (run predict-then-compare: the user attempts the next step before reading it, then diffs against the author's version — only when derivable from verified material), worked examples the user can re-derive.
 3. Generate from scratch only as fallback, imitating the book's style and running examples.
 
-Mechanics: in the **practice repo** (`../practice`), branch `ex/<unit>-<topic>` off `main`'s tip with the scaffold committed as initial state — stubs, tests, README. Never a blank page. Use faded examples: early units keep more of the author's code, later units less. Add tiered bonuses (base requirement + optional extensions). The user's commit is the submission: review the diff, run the tests, give feedback; revisions are follow-up commits. When the exercise concludes, log it — `uv run scripts/state.py practice <unit> --branch ex/<unit>-<topic> --result passed|revised|abandoned` — and advance practice `main` to the author's canonical version.
+Mechanics: under `../practice/exercises/<unit>-<topic>/`, commit the scaffold first as its own commit — stubs, tests, README — seeded from `practice/src` (the book's canonical code) as context. Never a blank page. Use faded examples: early units keep more of the author's code, later units less. Add tiered bonuses (base requirement + optional extensions). The user edits in place and commits — that commit is the submission: review the diff (`git log -p -- practice/exercises/<unit>-<topic>/`), run the tests, give feedback; revisions are follow-up commits. When the exercise concludes, log it — `uv run scripts/state.py practice <unit> --dir exercises/<unit>-<topic> --result passed|revised|abandoned` — and advance `practice/src` to the author's canonical version.
 
 ### 4. Flashcards
 Create 3-7 cards from the most interesting bits of the exam and practice — errors and surprises first. Follow the formulation rules in [references/flashcards.md](references/flashcards.md). Append them to `cards/cards.yaml`.
@@ -113,8 +115,8 @@ Create 3-7 cards from the most interesting bits of the exam and practice — err
 ## Delivery-mode rule
 
 - **Built HTML form** (from the bundled templates) — self-contained, no execution needed: snippets, predictions, explanations, sketches. If a textbox suffices, it's a form. Forms may contain code.
-- **Git branch** — needs real tooling: multiple files, tests, compiler/runtime feedback. If the user would want an editor and a terminal, it's a branch.
-- A form exercise can be escalated to a branch if it turns out heavier than expected.
+- **Code exercise** (a directory under `practice/exercises/`) — needs real tooling: multiple files, tests, compiler/runtime feedback. If the user would want an editor and a terminal, it's a code exercise.
+- A form exercise can be escalated to a code exercise if it turns out heavier than expected.
 
 ## Flashcard reviews
 
