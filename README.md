@@ -76,7 +76,7 @@ Each unit runs a loop:
 
 1. **Read** the unit yourself (the skill never reads it for you).
 2. **Exam** — a short, closed-book retrieval check right after reading, delivered as a web page: multiple choice with diagnostic wrong-answers, code tracing, Parsons problems, in-browser code-and-run, diagram labeling. A wrong answer gets the reasoning, not just the correct option.
-3. **Practice** — a scaffolded exercise in a git branch, aimed at what the exam exposed. Your commit is the submission; it's reviewed and tested.
+3. **Practice** — a scaffolded exercise in its own directory under `practice/exercises/`, aimed at what the exam exposed. Your commit is the submission; it's reviewed and tested.
 4. **Flashcards** — drawn from your own mistakes and surprises, scheduled with spaced repetition.
 
 Around that loop:
