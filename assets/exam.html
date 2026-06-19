@@ -453,6 +453,7 @@ function refreshExport() {
 }
 
 let mech = 0, mechRight = 0, answeredCount = 0;
+let resultsShown = false;
 const gradedFlags = {};
 
 function lockItem(box, i) {
@@ -528,8 +529,32 @@ function gradeItem(data, i) {
   graded.items.push(r);
   graded.items.sort((a, b) => a.index - b.index);
   answeredCount++;
-  refreshExport();
+  revealResults(data);                                    /* export is reachable after the FIRST submit */
   if (answeredCount === data.items.length) finish(data);
+}
+
+/* Reveal the results/export panel as soon as anything is submitted, so the copy/download
+   link is always reachable (you don't have to submit every item first). Key points and the
+   final mechanical score still wait for finish(). */
+function revealResults(data) {
+  document.getElementById('results').style.display = 'block';
+  if (!resultsShown) {
+    resultsShown = true;
+    document.getElementById('refl-overall').addEventListener('input', () => refreshExport());
+    document.getElementById('copy').onclick = () =>
+      navigator.clipboard && navigator.clipboard.writeText(refreshExport());
+    document.getElementById('download').onclick = () => {
+      const a = el('a', { href: URL.createObjectURL(new Blob([refreshExport()], { type: 'application/json' })),
+        download: (data.unit ? data.unit + '-' : '') + 'exam-results.json' });
+      a.click();
+    };
+  }
+  if (answeredCount < data.items.length) {
+    document.getElementById('score').textContent =
+      `Submitted ${answeredCount} of ${data.items.length}. Copy or download your results anytime below; ` +
+      `submit the remaining ${data.items.length - answeredCount} to unlock the key points.`;
+  }
+  refreshExport();
 }
 
 function finish(data) {
@@ -541,16 +566,7 @@ function finish(data) {
     kp.replaceChildren(...data.key_points.map(p2 => el('li', { text: p2 })));
     document.getElementById('keypoints').style.display = 'block';
   }
-  document.getElementById('refl-overall').addEventListener('input', () => refreshExport());
   refreshExport();
-  document.getElementById('results').style.display = 'block';
-  document.getElementById('copy').onclick = () =>
-    navigator.clipboard && navigator.clipboard.writeText(refreshExport());
-  document.getElementById('download').onclick = () => {
-    const a = el('a', { href: URL.createObjectURL(new Blob([refreshExport()], { type: 'application/json' })),
-      download: (data.unit ? data.unit + '-' : '') + 'exam-results.json' });
-    a.click();
-  };
   document.getElementById('keypoints').scrollIntoView({ behavior: 'smooth' });
 }
 

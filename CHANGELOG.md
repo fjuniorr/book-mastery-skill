@@ -6,6 +6,19 @@ where / how verified.
 
 ## 2026-06-19
 
+### Template — `assets/exam.html`: export/copy reachable after the FIRST submit (was: only after all items)
+- **What:** the Results panel (export JSON + Copy / Download) was hidden until *every* item was submitted
+  (`answeredCount === items.length` → `finish()`). If a learner didn't submit one item, there was no copy
+  link and no hint why. Now it appears as soon as the first item is submitted, via a new `revealResults()`
+  (called from `gradeItem`), with a "Submitted X of N — submit the rest to unlock the key points" progress
+  line. Key points and the final mechanical score still wait for completion; `finish()` was slimmed (the
+  copy/download wiring moved into `revealResults`, guarded by a `resultsShown` flag).
+- **Why:** a learner reported "I answered but there's no link to copy the answers" — they had a dead end
+  after a partial submit.
+- **Verified:** Playwright headless — after 1 of 3 submits the panel + copy button show, export JSON is
+  populated, key points stay hidden, progress line reads "Submitted 1 of 3"; after all 3, key points
+  unlock and the score shows the mechanical tally.
+
 ### Templates — shared `assets/theme.css` + the dashboard is now a built page
 - **What:** extracted the design language duplicated across all six page templates (`:root` tokens, reset,
   `body`, `.wrap`, `header`, `.eyebrow`, `h1`, `.meta/.sub`, `pre`/`code`, base `button`, `kbd`, `.hint`,
