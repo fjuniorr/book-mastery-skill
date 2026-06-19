@@ -6,6 +6,26 @@ where / how verified.
 
 ## 2026-06-19
 
+### Templates — shared `assets/theme.css` + the dashboard is now a built page
+- **What:** extracted the design language duplicated across all six page templates (`:root` tokens, reset,
+  `body`, `.wrap`, `header`, `.eyebrow`, `h1`, `.meta/.sub`, `pre`/`code`, base `button`, `kbd`, `.hint`,
+  focus, print base) into a single `assets/theme.css`. `build_page.py` inlines it at a `/*__THEME__*/`
+  marker, so built pages stay self-contained over `file://`. Each template now holds only its
+  page-specific rules after the marker.
+- **Dashboard templatized:** the "what to do now" page was bespoke hand-written HTML (the one page not
+  built from YAML, and off-style — a dark GitHub theme). It's now `assets/dashboard.html` +
+  `assets/schemas/dashboard.schema.json`, built with `build_page.py dashboard <yaml> -o index.html`,
+  matching the paper/editorial aesthetic of the other pages. Cleaner IA: a status strip (position +
+  progress bar) → Do now → Up next → Recently done → Pages.
+- **Why:** one source of truth for styling (restyle everything by editing `theme.css`); and the dashboard
+  now follows the same never-hand-write-HTML rule as every other page.
+- **Where:** new `assets/theme.css`, `assets/dashboard.html`, `assets/schemas/dashboard.schema.json`;
+  `scripts/build_page.py` (THEME_MARKER inline + `dashboard` mode); all six existing `assets/*.html`
+  templates slimmed to page-specifics; `SKILL.md` + `references/yaml-schemas.md` docs.
+- **Verified:** rebuilt all seven pages (exam, cards, glossary, quotes, map, cornell, dashboard) and
+  screenshot-checked each in headless chromium — theme inlines (marker gone, tokens present), every page
+  renders intact in the shared aesthetic, cornell keeps its brighter-sheet override.
+
 ### Workflow — repo root *is* the study workspace (dropped the `study/` subdir)
 - **What:** with one repo per book, the separate `study/` working directory was a vestige of the old
   three-repo design. The workspace files (`BOOK.md`, `NOTES.md`, `GAPS.md`, `index.html`, `exams/`,

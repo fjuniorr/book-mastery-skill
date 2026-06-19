@@ -19,16 +19,18 @@ This is a stateful, multi-session workflow. The current directory is the book's 
 - `log/events.jsonl` — append-only event log: every review rating, exam outcome, and grading verdict, one JSON line each. **Never rewrite or edit this file — only append**, and prefer appending via `scripts/state.py` import commands. All scheduling arithmetic and progress state is *derived* from this log by script; you never compute intervals or due dates yourself.
 - `reviews/` — the due-card YAML generated at each session start (by `state.py due`).
 - `sessions/` — built HTML pages, generated from YAML by `scripts/build_page.py`. Never hand-write these.
+- `dashboard.yaml` → `index.html` — the living "what to do now" dashboard (current position, progress, do-now / up-next / recently-done, links). Built like every other page (`build_page.py dashboard`); regenerate each turn that changes state. Never hand-write `index.html`. Schema: `assets/schemas/dashboard.schema.json`.
 - `practice/` — a **subdirectory of the workspace** for exercises (see Git layout below): one directory per exercise under `practice/exercises/`, with `practice/src/` holding the book's canonical running code.
 - `project/` — the capstone, also a **subdirectory of the workspace**. Design rules: [references/project.md](references/project.md).
 - `explanations/` — discursive Markdown explanations the learner asks for, authored in the Diátaxis *explanation* mode (understanding, not instruction). On-demand and cross-linked to the glossary and maps; prose needs no build step. Mechanics: [references/explanations.md](references/explanations.md).
 - `GAPS.md` — registry of detected gaps in the learner's background, their evidence, and the inserted units closing them. Format and mechanics: [references/gaps.md](references/gaps.md).
 - `NOTES.md` — working notes: observed pace calibration, volunteered preferences, things to avoid. Observations and things the learner says unprompted — never interview material.
 
-**Delivery infrastructure (ships with the skill, never edited per-session):** `assets/exam.html` and `assets/flashcards.html` are self-contained templates. Scripts are portable via uv — they carry inline (PEP 723) dependency metadata, so `uv run` needs no environment setup:
+**Delivery infrastructure (ships with the skill, never edited per-session):** the `assets/*.html` files are self-contained page templates; `assets/theme.css` is the shared design language (tokens + base typography + common components), which `build_page.py` **inlines** into each page at build time so built pages stay self-contained over `file://`. Edit `theme.css` once to restyle every page. Scripts are portable via uv — they carry inline (PEP 723) dependency metadata, so `uv run` needs no environment setup:
 
 ```bash
 uv run scripts/build_page.py exam exams/0007-exam.yaml -o sessions/0007-exam.html   # YAML -> page
+uv run scripts/build_page.py dashboard dashboard.yaml -o index.html   # the "what to do now" dashboard
 uv run scripts/state.py due -o reviews/due.yaml      # due cards (most overdue first, capped)
 uv run scripts/state.py import-review review.json    # append review ratings to the log
 uv run scripts/state.py import-exam results.json     # append exam outcomes to the log

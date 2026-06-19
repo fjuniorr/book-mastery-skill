@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "book-mastery/dashboard.schema.json",
+  "title": "Workspace dashboard (what to do now)",
+  "type": "object",
+  "required": [
+    "book"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "book": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "base_url": {
+      "type": "string"
+    },
+    "updated": {
+      "type": "string",
+      "description": "Human-readable timestamp, e.g. '2026-06-19 21:40 UTC'."
+    },
+    "position": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "unit": { "type": "string" },
+        "label": { "type": "string" },
+        "detail": {
+          "type": "string",
+          "description": "One-line state of the current unit, e.g. 'read ✓ · exam r1 2/3 · practice pending'."
+        }
+      }
+    },
+    "progress": {
+      "type": "object",
+      "required": ["done", "total"],
+      "additionalProperties": false,
+      "properties": {
+        "done": { "type": "integer", "minimum": 0 },
+        "total": { "type": "integer", "minimum": 1 },
+        "unit": { "type": "string", "description": "What is being counted, e.g. 'chapters' (default)." },
+        "note": { "type": "string" }
+      }
+    },
+    "now": {
+      "type": "array",
+      "description": "The focus: the action(s) to take right now.",
+      "items": {
+        "type": "object",
+        "required": ["title"],
+        "additionalProperties": false,
+        "properties": {
+          "title": { "type": "string" },
+          "detail": { "type": "string" },
+          "tag": { "type": "string", "description": "Short chip, e.g. 'unit 1.1'." },
+          "warn": { "type": "boolean", "description": "Render the chip in the warn color." },
+          "href": { "type": "string" },
+          "cta": { "type": "string", "description": "Link label (default 'Open')." }
+        }
+      }
+    },
+    "next": {
+      "type": "array",
+      "description": "Queued items, not yet actionable.",
+      "items": {
+        "type": "object",
+        "required": ["title"],
+        "additionalProperties": false,
+        "properties": {
+          "title": { "type": "string" },
+          "detail": { "type": "string" },
+          "href": { "type": "string" }
+        }
+      }
+    },
+    "done": {
+      "type": "array",
+      "description": "Recently completed, informational.",
+      "items": { "type": "string" }
+    },
+    "links": {
+      "type": "array",
+      "description": "Grouped links to live pages.",
+      "items": {
+        "type": "object",
+        "required": ["items"],
+        "additionalProperties": false,
+        "properties": {
+          "group": { "type": "string" },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["text", "href"],
+              "additionalProperties": false,
+              "properties": {
+                "text": { "type": "string" },
+                "href": { "type": "string" },
+                "note": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -5,42 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Flashcard Review</title>
 <style>
-  :root {
-    --paper: #fafaf7; --ink: #1c1e21; --muted: #6b7280; --line: #d8d8d2;
-    --accent: #0f6b54; --accent-soft: #e3f0eb;
-    --code-bg: #14161a; --code-ink: #e8e6e3;
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--paper); color: var(--ink);
-    font: 17px/1.6 Georgia, 'Times New Roman', serif; }
-  .wrap { max-width: 640px; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
-  header { border-bottom: 3px double var(--ink); padding-bottom: 1rem; margin-bottom: 2rem;
-    display: flex; align-items: baseline; justify-content: space-between; }
-  .eyebrow { font: 700 0.72rem/1 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.18em;
-    text-transform: uppercase; color: var(--accent); }
+  /*__THEME__*/
+  body { font-size: 17px; }
+  .wrap { max-width: 640px; }
+  header { display: flex; align-items: baseline; justify-content: space-between; }
   #progress { color: var(--muted); font: 0.85rem 'Helvetica Neue', Arial, sans-serif; }
   .card { background: #fff; border: 1px solid var(--line); border-radius: 10px;
     padding: 2rem 1.75rem; min-height: 12rem; box-shadow: 0 1px 0 var(--line); }
   .unit-tag { font: 700 0.68rem/1 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.14em;
     text-transform: uppercase; color: var(--muted); margin-bottom: 0.8rem; }
   .q { font-size: 1.15rem; font-weight: 600; }
-  pre { background: var(--code-bg); color: var(--code-ink); padding: 0.9rem 1rem; border-radius: 6px;
-    overflow-x: auto; font: 0.85rem/1.55 'SF Mono', 'Fira Code', Consolas, monospace; }
   .a { display: none; margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px dashed var(--line); }
   .controls { margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
-  button { font: 600 0.9rem 'Helvetica Neue', Arial, sans-serif; padding: 0.6rem 1.1rem;
-    border: 1px solid var(--ink); border-radius: 6px; background: #fff; cursor: pointer; flex: 1; }
-  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  button { padding: 0.6rem 1.1rem; flex: 1; }
   #reveal { background: var(--ink); color: var(--paper); }
   .rate { display: none; }
   button[data-rate="again"]:hover { border-color: #b3402a; color: #b3402a; }
   button[data-rate="hard"]:hover { border-color: #b07a1f; color: #b07a1f; }
   button[data-rate="good"]:hover, button[data-rate="easy"]:hover { border-color: var(--accent); color: var(--accent); }
-  kbd { font: 0.75rem 'SF Mono', Consolas, monospace; color: var(--muted); }
   #done { display: none; }
   #done textarea { width: 100%; min-height: 9rem; border: 1px solid var(--line); border-radius: 6px;
     padding: 0.7rem; font: 0.78rem/1.5 'SF Mono', Consolas, monospace; }
-  .hint { color: var(--muted); font-size: 0.85rem; }
 </style>
 </head>
 <body>

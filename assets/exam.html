@@ -5,22 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Exam</title>
 <style>
-  :root {
-    --paper: #fafaf7; --ink: #1c1e21; --muted: #6b7280; --line: #d8d8d2;
-    --accent: #0f6b54; --accent-soft: #e3f0eb; --wrong: #b3402a; --wrong-soft: #f7e8e4;
-    --code-bg: #14161a; --code-ink: #e8e6e3;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--paper); color: var(--ink);
-    font: 16px/1.6 Georgia, 'Times New Roman', serif;
-  }
-  .wrap { max-width: 720px; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
-  header { border-bottom: 3px double var(--ink); padding-bottom: 1rem; margin-bottom: 2rem; }
-  .eyebrow { font: 700 0.72rem/1 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.18em;
-    text-transform: uppercase; color: var(--accent); }
-  h1 { font-size: 1.6rem; margin: 0.4rem 0 0.2rem; }
-  .sub { color: var(--muted); font-size: 0.95rem; }
+  /*__THEME__*/
+  h1 { font-size: 1.6rem; }  /* tighter than the shared 1.7rem default */
   .item { margin: 0 0 2.25rem; padding-left: 1rem; border-left: 3px solid var(--line); }
   .item.graded-right { border-left-color: var(--accent); }
   .item.graded-wrong { border-left-color: var(--wrong); }
@@ -28,11 +14,6 @@
     text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
   .stem { font-weight: 600; margin-bottom: 0.75rem; }
   .stem pre { margin: 0.6rem 0 0.2rem; font-weight: 400; }
-  /* inline code chip (markdown `code` in stems); pre uses highlight spans, not <code>, so this won't touch it */
-  code { font: 0.85em/1.4 'SF Mono', 'Fira Code', Consolas, monospace; background: #ecebe2;
-    border: 1px solid var(--line); border-radius: 4px; padding: 0.04rem 0.32rem; font-weight: 400; }
-  pre { background: var(--code-bg); color: var(--code-ink); padding: 0.9rem 1rem; border-radius: 6px;
-    overflow-x: auto; font: 0.85rem/1.55 'SF Mono', 'Fira Code', Consolas, monospace; }
   /* self-contained Python syntax highlighting for read-only code blocks (works offline) */
   pre .hl-comment  { color: #7d8c83; font-style: italic; }
   pre .hl-string   { color: #e0a36b; }
@@ -48,7 +29,6 @@
   textarea { width: 100%; min-height: 6.5rem; border: 1px solid var(--line); border-radius: 6px;
     padding: 0.7rem; font: 0.9rem/1.55 'SF Mono', 'Fira Code', Consolas, monospace;
     background: #fff; resize: vertical; }
-  textarea:focus, select:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   .parsons li { background: #fff; border: 1px solid var(--line); border-radius: 6px;
     padding: 0.4rem 0.6rem; margin: 0.3rem 0; display: flex; align-items: center; gap: 0.6rem;
     font: 0.85rem/1.5 'SF Mono', 'Fira Code', Consolas, monospace; white-space: pre; }
@@ -59,10 +39,7 @@
     margin: 0.4rem 0; }
   select { padding: 0.4rem; border: 1px solid var(--line); border-radius: 6px; font-size: 0.9rem;
     background: #fff; width: 100%; }
-  button { font: 600 0.9rem 'Helvetica Neue', Arial, sans-serif; padding: 0.55rem 1.1rem;
-    border: 1px solid var(--ink); border-radius: 6px; background: #fff; cursor: pointer; }
   button.primary { background: var(--ink); color: var(--paper); }
-  button:hover { border-color: var(--accent); color: var(--accent); }
   button.primary:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
   .feedback { margin-top: 0.6rem; padding: 0.6rem 0.8rem; border-radius: 6px; font-size: 0.92rem; }
   .feedback.right { background: var(--accent-soft); }

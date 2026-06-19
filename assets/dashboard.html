@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book Mastery — Dashboard</title>
+<style>
+/*__THEME__*/
+  .wrap { max-width: 820px; }
+  header { margin-bottom: 1.4rem; }
+
+  /* status strip: where I am + overall progress */
+  .status { display: flex; flex-wrap: wrap; gap: 0.9rem 1.6rem; align-items: center;
+    border: 1px solid var(--line); background: #fff; border-radius: 10px;
+    padding: 0.9rem 1.15rem; margin-bottom: 2.2rem; }
+  .status .pos { flex: 1 1 300px; }
+  .status .pos .lbl { font: 700 0.62rem/1 'Helvetica Neue', Arial, sans-serif;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+  .status .pos .where { font-size: 1.05rem; font-weight: 600; margin-top: 0.2rem; }
+  .status .pos .where .unit { color: var(--accent); }
+  .status .pos .detail { color: var(--muted); font-size: 0.88rem; margin-top: 0.15rem; }
+  .bar { flex: 0 1 220px; min-width: 170px; }
+  .bar .track { height: 9px; background: var(--accent-soft); border-radius: 999px; overflow: hidden; }
+  .bar .track > i { display: block; height: 100%; background: var(--accent); }
+  .bar .blabel { font: 0.78rem 'Helvetica Neue', Arial, sans-serif; color: var(--muted); margin-top: 0.35rem; }
+
+  h2 { font: 700 0.78rem/1 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink); border-bottom: 1px solid var(--line);
+    padding-bottom: 0.4rem; margin: 2.4rem 0 1.1rem; }
+  h2 .n { float: right; font-weight: 400; color: var(--muted); letter-spacing: 0.04em; }
+
+  /* "Do now": prominent, accent-edged cards */
+  .now-item { border-left: 3px solid var(--accent); background: var(--accent-soft);
+    border-radius: 0 8px 8px 0; padding: 0.85rem 1rem; margin: 0 0 0.85rem; }
+  .now-item .t { font-weight: 700; }
+  .now-item .d { color: #36433d; font-size: 0.9rem; margin-top: 0.25rem; }
+  .now-item .go { display: inline-block; margin-top: 0.5rem; font: 700 0.8rem 'Helvetica Neue', Arial, sans-serif;
+    color: var(--accent); text-decoration: none; }
+  .now-item .go:hover { text-decoration: underline; }
+  .chip { display: inline-block; font: 700 0.62rem/1 'Helvetica Neue', Arial, sans-serif;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 999px; padding: 0.12rem 0.5rem; margin-left: 0.5rem; }
+  .chip.warn { color: var(--wrong); border-color: var(--wrong); }
+
+  /* "Up next": quieter list with a left rule */
+  .next-item { border-left: 3px solid var(--line); padding: 0.15rem 0 0.55rem 0.9rem; margin-bottom: 0.7rem; }
+  .next-item .t { font-weight: 600; }
+  .next-item .d { color: var(--muted); font-size: 0.88rem; margin-top: 0.1rem; }
+  .next-item a { color: var(--accent); text-decoration: none; }
+  .next-item a:hover { text-decoration: underline; }
+
+  ul.done { list-style: none; padding: 0; margin: 0; }
+  ul.done li { color: var(--muted); font-size: 0.92rem; padding: 0.2rem 0 0.2rem 1.5rem; position: relative; }
+  ul.done li::before { content: '✓'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+
+  .links .grp { margin-bottom: 1.1rem; }
+  .links .grp .gl { font: 700 0.66rem/1 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
+  .links ul { list-style: none; padding: 0; margin: 0; }
+  .links li { padding: 0.2rem 0; }
+  .links a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .links a:hover { text-decoration: underline; }
+  .links .note { color: var(--muted); font-size: 0.84rem; font-weight: 400; }
+
+  .empty { color: var(--muted); font-style: italic; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Book Mastery · Dashboard</div>
+    <h1 id="book"></h1>
+    <div class="meta" id="meta"></div>
+  </header>
+
+  <div class="status">
+    <div class="pos">
+      <div class="lbl">Current position</div>
+      <div class="where" id="where"></div>
+      <div class="detail" id="pos-detail"></div>
+    </div>
+    <div class="bar" id="bar" hidden>
+      <div class="track"><i id="fill"></i></div>
+      <div class="blabel" id="blabel"></div>
+    </div>
+  </div>
+
+  <section id="sec-now" hidden>
+    <h2>▶ Do now</h2>
+    <div id="now"></div>
+  </section>
+
+  <section id="sec-next" hidden>
+    <h2>Up next</h2>
+    <div id="next"></div>
+  </section>
+
+  <section id="sec-done" hidden>
+    <h2>Recently done</h2>
+    <ul class="done" id="done"></ul>
+  </section>
+
+  <section id="sec-links" hidden class="links">
+    <h2>Pages</h2>
+    <div id="links"></div>
+  </section>
+</div>
+<script>
+/* The build script replaces the null below with the dashboard data as JSON. */
+const DATA = /*__DATA_JSON__*/null;
+
+const $ = id => document.getElementById(id);
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls;
+  if (txt != null) e.textContent = txt; return e; };
+
+if (!DATA) {
+  $('book').textContent = 'Template not built';
+  $('where').textContent = 'Run scripts/build_page.py dashboard <yaml> to generate this page.';
+} else {
+  render(DATA);
+}
+
+function render(d) {
+  document.title = `${d.book || 'Book Mastery'} — Dashboard`;
+  $('book').textContent = d.book || 'Book Mastery';
+  const metaBits = [];
+  if (d.subtitle) metaBits.push(d.subtitle);
+  if (d.base_url) metaBits.push(d.base_url);
+  if (d.updated) metaBits.push(`updated ${d.updated}`);
+  $('meta').textContent = metaBits.join(' · ');
+
+  const pos = d.position || {};
+  const where = $('where');
+  if (pos.unit) { const u = el('span', 'unit', pos.unit); where.append(u, document.createTextNode(' ' + (pos.label || ''))); }
+  else where.textContent = pos.label || '—';
+  if (pos.detail) $('pos-detail').textContent = pos.detail;
+
+  const pr = d.progress;
+  if (pr && pr.total) {
+    $('bar').hidden = false;
+    const pct = Math.round(100 * (pr.done || 0) / pr.total);
+    $('fill').style.width = Math.max(pct, 2) + '%';
+    $('blabel').textContent = `${pr.done || 0} / ${pr.total} ${pr.unit || 'chapters'}${pr.note ? ' · ' + pr.note : ''}`;
+  }
+
+  // Do now
+  if (d.now && d.now.length) {
+    $('sec-now').hidden = false;
+    const box = $('now');
+    d.now.forEach(it => {
+      const c = el('div', 'now-item');
+      const t = el('div', 't'); t.textContent = it.title;
+      if (it.tag) { const chip = el('span', 'chip' + (it.warn ? ' warn' : '')); chip.textContent = it.tag; t.append(chip); }
+      c.append(t);
+      if (it.detail) c.append(el('div', 'd', it.detail));
+      if (it.href) { const a = el('a', 'go', (it.cta || 'Open') + ' →'); a.href = it.href; c.append(a); }
+      box.append(c);
+    });
+  }
+
+  // Up next
+  if (d.next && d.next.length) {
+    $('sec-next').hidden = false;
+    const box = $('next');
+    d.next.forEach(it => {
+      const c = el('div', 'next-item');
+      const t = el('div', 't');
+      if (it.href) { const a = el('a', null, it.title); a.href = it.href; t.append(a); } else t.textContent = it.title;
+      c.append(t);
+      if (it.detail) c.append(el('div', 'd', it.detail));
+      box.append(c);
+    });
+  }
+
+  // Recently done
+  if (d.done && d.done.length) {
+    $('sec-done').hidden = false;
+    d.done.forEach(s => $('done').append(el('li', null, s)));
+  }
+
+  // Pages (grouped links)
+  if (d.links && d.links.length) {
+    $('sec-links').hidden = false;
+    const box = $('links');
+    d.links.forEach(g => {
+      const grp = el('div', 'grp');
+      if (g.group) grp.append(el('div', 'gl', g.group));
+      const ul = el('ul');
+      (g.items || []).forEach(it => {
+        const li = el('li');
+        const a = el('a', null, it.text); a.href = it.href; li.append(a);
+        if (it.note) { li.append(document.createTextNode(' ')); li.append(el('span', 'note', '— ' + it.note)); }
+        ul.append(li);
+      });
+      grp.append(ul); box.append(grp);
+    });
+  }
+}
+</script>
+</body>
+</html>

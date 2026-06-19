@@ -9,7 +9,12 @@ python scripts/build_page.py exam     exams/<unit>-r<n>.yaml -o sessions/<unit>-
 python scripts/build_page.py cards    reviews/due.yaml       -o sessions/<date>-review.html
 python scripts/build_page.py cornell  artifacts/cornell/ch<NN>.yaml -o artifacts/cornell/ch<NN>.html
 python scripts/build_page.py glossary artifacts/glossary.yaml -o artifacts/glossary.html   # also: quotes, map
+python scripts/build_page.py dashboard dashboard.yaml -o index.html   # the "what to do now" dashboard
 ```
+
+All templates share `assets/theme.css` (design tokens + base typography + common components), which the
+builder inlines at build time — so built pages stay self-contained over `file://`. Restyle every page by
+editing `theme.css`; put page-specific rules in the template after the `/*__THEME__*/` marker.
 
 Artifact pages are one per type, each with its own URL. Cornell is per chapter; glossary, quotes (kept lines), and map are book-wide cumulative YAML files regenerated each chapter. Schemas: `cornell.schema.json` (cues, notes, summary), `glossary.schema.json` (entries with `see_also` cross-links — link near-confusables), `quotes.schema.json` (learner-chosen short lines), `map.schema.json` (a COLLECTION of small maps per Teaching Tech Together: ≤9 concepts each, every edge labeled so it reads as a sentence; the build lints both). Field descriptions carry the sourcing rules; the rule above all: the learner's words beat generated prose.
 

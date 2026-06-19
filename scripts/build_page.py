@@ -33,9 +33,11 @@ TEMPLATES = {
     "glossary": ("glossary.html", "glossary.schema.json"),
     "quotes": ("quotes.html", "quotes.schema.json"),
     "map": ("map.html", "map.schema.json"),
+    "dashboard": ("dashboard.html", "dashboard.schema.json"),
 }
 PLACEHOLDER = "/*__DATA_JSON__*/null"
 SCRATCHPAD_MARKER = "<!--__SCRATCHPAD__-->"
+THEME_MARKER = "/*__THEME__*/"  # replaced with assets/theme.css so built pages stay self-contained
 AGENT_ONLY_FIELDS = ("objective",)  # stripped from the built page; rubric stays (revealed post-submission)
 
 
@@ -59,6 +61,8 @@ def main() -> None:
     strip_agent_fields(data)
 
     html = html.replace(PLACEHOLDER, json.dumps(data, ensure_ascii=False), 1)
+    theme = (ASSETS / "theme.css").read_text(encoding="utf-8")
+    html = html.replace(THEME_MARKER, theme, 1)
     fragment = (ASSETS / "scratchpad.fragment.html").read_text(encoding="utf-8")
     html = html.replace(SCRATCHPAD_MARKER, fragment, 1)
     args.out.parent.mkdir(parents=True, exist_ok=True)

@@ -1,0 +1,39 @@
+/* book-mastery shared theme — the common design language across all built pages.
+   Source of truth; build_page.py inlines this into each template's <style> (so built
+   pages stay self-contained over file://). Page-specific rules live in each template
+   AFTER the inline point and override these where they differ. */
+
+:root {
+  --paper: #fafaf7; --ink: #1c1e21; --muted: #6b7280; --line: #d8d8d2;
+  --accent: #0f6b54; --accent-soft: #e3f0eb;
+  --wrong: #b3402a; --wrong-soft: #f7e8e4;
+  --code-bg: #14161a; --code-ink: #e8e6e3;
+  --rule: #e4e4da;
+}
+* { box-sizing: border-box; }
+
+body { margin: 0; background: var(--paper); color: var(--ink);
+  font: 16px/1.6 Georgia, 'Times New Roman', serif; }
+
+.wrap { max-width: 720px; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
+
+header { border-bottom: 3px double var(--ink); padding-bottom: 1rem; margin-bottom: 2rem; }
+.eyebrow { font: 700 0.72rem/1 'Helvetica Neue', Arial, sans-serif; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 1.7rem; margin: 0.4rem 0 0.2rem; }
+.meta, .sub { color: var(--muted); font-size: 0.92rem; }
+
+pre { background: var(--code-bg); color: var(--code-ink); padding: 0.9rem 1rem; border-radius: 6px;
+  overflow-x: auto; font: 0.85rem/1.55 'SF Mono', 'Fira Code', Consolas, monospace; }
+code { font: 0.85em/1.4 'SF Mono', 'Fira Code', Consolas, monospace; background: #ecebe2;
+  border: 1px solid var(--line); border-radius: 4px; padding: 0.04rem 0.32rem; font-weight: 400; }
+
+button { font: 600 0.9rem 'Helvetica Neue', Arial, sans-serif; padding: 0.55rem 1.1rem;
+  border: 1px solid var(--ink); border-radius: 6px; background: #fff; cursor: pointer; }
+button:hover { border-color: var(--accent); color: var(--accent); }
+button:focus-visible, textarea:focus, select:focus, input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+kbd { font: 0.75rem 'SF Mono', Consolas, monospace; color: var(--muted); }
+.hint { color: var(--muted); font-size: 0.85rem; }
+
+@media print { body { background: #fff; } }
